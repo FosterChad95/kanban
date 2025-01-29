@@ -20,6 +20,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/icon-board.svg" sizes="32x32" />
+      </head>
       <body className={`${plusJakartaSans.variable} font-sans`}>
         {children}
       </body>
