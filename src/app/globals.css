@@ -2,20 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+html,
+body,
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  height: 100%;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@custom-variant dark (&:where(.dark, .dark *));
+
+.heading-xl {
+  @apply text-2xl font-bold leading-[30px];
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+.heading-l {
+  @apply text-lg font-bold leading-[23px];
+}
+
+.heading-medium {
+  @apply text-[15px] font-bold leading-[19px];
+}
+
+.heading-small {
+  @apply text-xs font-bold tracking-[2.4px] text-medium-gray;
+}
+
+.body-large {
+  @apply font-medium text-[13px] leading-[23px];
+}
+
+.body-medium {
+  @apply font-bold text-[12px] leading-[15px];
 }
