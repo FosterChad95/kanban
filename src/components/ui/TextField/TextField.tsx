@@ -2,17 +2,8 @@ import { cn } from "@/lib/utils";
 import React, { InputHTMLAttributes } from "react";
 
 interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
-  /**
-   * Label text for the input
-   */
   label?: string;
-  /**
-   * Error message to display
-   */
   error?: string;
-  /**
-   * Optional helper text
-   */
   helperText?: string;
 }
 
