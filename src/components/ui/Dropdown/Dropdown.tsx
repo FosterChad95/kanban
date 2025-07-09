@@ -68,21 +68,21 @@ export const Dropdown = ({
     <div className="relative" ref={dropdownRef}>
       <button
         type="button"
-        className={`w-full flex items-center justify-between px-3 py-2 border rounded-lg text-gray-700 bg-white ${
+        className={`w-full flex items-center justify-between px-3 py-2 border rounded-lg bg-white ${
           isOpen
-            ? "border-purple-600 shadow-purple ring-2 ring-purple-600/20"
-            : "border-gray-200 hover:border-gray-300"
+            ? "border-purple-600 ring-2 ring-purple-100 text-gray-700"
+            : "border-gray-200 hover:border-gray-300 text-gray-700"
         }`}
         onClick={() => setIsOpen(!isOpen)}
         onKeyDown={handleKeyDown}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
       >
-        <span className={!value ? "text-gray-400" : ""}>
+        <span className={!value ? "text-gray-500" : ""}>
           {value || placeholder || "Select option"}
         </span>
         <svg
-          className={`w-5 h-5 text-gray-400 transition-transform ${
+          className={`w-5 h-5 text-gray-500 transition-transform ${
             isOpen ? "transform rotate-180" : ""
           }`}
           xmlns="http://www.w3.org/2000/svg"
@@ -100,14 +100,14 @@ export const Dropdown = ({
       {isOpen && (
         <ul
           role="listbox"
-          className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg"
+          className="absolute z-10 w-full mt-1 py-1 bg-white border border-gray-200 rounded-lg shadow-lg"
         >
           {options.map((option) => (
             <li
               key={option}
               role="option"
               aria-selected={value === option}
-              className="px-3 py-2 text-gray-500 cursor-pointer hover:bg-gray-50"
+              className="px-3 py-2 text-gray-600 cursor-pointer hover:bg-gray-50"
               onClick={() => {
                 onChange(option);
                 setIsOpen(false);
