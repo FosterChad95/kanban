@@ -3,7 +3,7 @@ import React from "react";
 import { SubtaskCheckbox } from "./SubtaskCheckbox";
 
 const meta: Meta<typeof SubtaskCheckbox> = {
-  title: "Components/SubtaskCheckbox",
+  title: "UI/SubtaskCheckbox",
   component: SubtaskCheckbox,
   argTypes: {
     checked: { control: "boolean" },
