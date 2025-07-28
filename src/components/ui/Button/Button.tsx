@@ -1,17 +1,22 @@
 import { ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
+import Icon from "../Icon/Icon";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary-l" | "primary-s" | "secondary" | "destructive";
+  icon?: "eye-slash" | "icon-board";
 }
 
 const Button = ({
   className,
   variant = "primary-l",
   children,
+  icon,
   ...props
 }: ButtonProps) => {
-  const baseStyles = "rounded-[20px] transition-colors duration-200";
+  // Import Icon here to use in the render
+  // (import will be added at the top)
+  const baseStyles = "rounded-[20px] transition-colors duration-200 flex gap-2";
 
   const variantStyles = {
     "primary-l":
@@ -29,6 +34,11 @@ const Button = ({
       className={cn(baseStyles, variantStyles[variant], className)}
       {...props}
     >
+      {icon && (
+        <span className="inline-flex items-center justify-center mr-2">
+          <Icon name={icon} />
+        </span>
+      )}
       {children}
     </button>
   );
