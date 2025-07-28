@@ -1,5 +1,21 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { useState } from "react";
 import { Dropdown } from "./Dropdown";
+
+// Wrapper component to handle state
+const DropdownWrapper = (props: React.ComponentProps<typeof Dropdown>) => {
+  const [value, setValue] = useState(props.value);
+  return (
+    <Dropdown
+      {...props}
+      value={value}
+      onChange={(newValue) => {
+        setValue(newValue);
+        props.onChange?.(newValue);
+      }}
+    />
+  );
+};
 
 const meta: Meta<typeof Dropdown> = {
   component: Dropdown,
@@ -16,6 +32,7 @@ export const Default: Story = {
     value: "",
     placeholder: "Select an option",
   },
+  render: (args) => <DropdownWrapper {...args} />,
 };
 
 export const WithValue: Story = {
@@ -23,6 +40,7 @@ export const WithValue: Story = {
     options: ["Option 1", "Option 2", "Option 3"],
     value: "Option 2",
   },
+  render: (args) => <DropdownWrapper {...args} />,
 };
 
 export const LongOptions: Story = {
@@ -35,6 +53,7 @@ export const LongOptions: Story = {
     value: "",
     placeholder: "Select a long option",
   },
+  render: (args) => <DropdownWrapper {...args} />,
 };
 
 export const ManyOptions: Story = {
@@ -43,4 +62,5 @@ export const ManyOptions: Story = {
     value: "",
     placeholder: "Select from many options",
   },
+  render: (args) => <DropdownWrapper {...args} />,
 };
