@@ -1,21 +1,15 @@
-import React, { useEffect, useState } from "react";
+"use client";
+
+import React from "react";
+import { useTheme } from "../../../providers/ThemeProvider";
 
 /**
- * ThemeToggle component toggles between light and dark mode by
- * adding/removing the 'dark' class on the <html> element.
+ * ThemeToggle component toggles between light and dark mode using ThemeContext.
  * It displays a sun/moon icon and a switch styled to match the provided design.
  */
 const ThemeToggle: React.FC = () => {
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    if (isDark) {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
-    }
-  }, [isDark]);
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === "dark";
 
   return (
     <div className="flex items-center justify-center gap-4 bg-light-gray px-6 py-3 rounded border border-[#A3BFFA]">
@@ -29,7 +23,7 @@ const ThemeToggle: React.FC = () => {
         className={`relative w-12 h-6 rounded-full transition-colors duration-200 ${
           isDark ? "bg-main-purple" : "bg-gray-300"
         }`}
-        onClick={() => setIsDark((prev) => !prev)}
+        onClick={toggleTheme}
       >
         <span
           className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${
