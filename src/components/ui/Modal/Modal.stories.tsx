@@ -75,3 +75,42 @@ function DemoCloseButton() {
 export const Default: StoryObj = {
   render: () => <DemoContent />,
 };
+
+import ViewTaskModal from "./ViewTaskModal";
+
+const mockSubtasks = [
+  { id: "1", title: "Subtask 1", completed: true },
+  { id: "2", title: "Subtask 2", completed: false },
+  { id: "3", title: "Subtask 3", completed: false },
+];
+
+const mockStatusOptions = ["Todo", "In Progress", "Done"];
+
+const ViewTaskModalDemo: React.FC = () => {
+  const { openModal } = useModal();
+  return (
+    <button
+      className="bg-blue-600 text-white px-4 py-2 rounded"
+      onClick={() =>
+        openModal(
+          <ViewTaskModal
+            title="Demo Task"
+            description="This is a demo task for the ViewTaskModal inside the reusable Modal."
+            subtasks={mockSubtasks}
+            status="Todo"
+            statusOptions={mockStatusOptions}
+            onStatusChange={() => {}}
+            onEdit={() => {}}
+            onDelete={() => {}}
+          />
+        )
+      }
+    >
+      Open View Task Modal
+    </button>
+  );
+};
+
+export const ViewTaskModalInModal: StoryObj = {
+  render: () => <ViewTaskModalDemo />,
+};

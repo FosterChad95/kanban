@@ -57,19 +57,6 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
             aria-modal="true"
           >
             {children}
-            <button
-              aria-label="Close modal"
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-white"
-              onClick={onClose}
-              style={{
-                background: "none",
-                border: "none",
-                fontSize: 24,
-                cursor: "pointer",
-              }}
-            >
-              ×
-            </button>
           </motion.div>
         </motion.div>
       )}
