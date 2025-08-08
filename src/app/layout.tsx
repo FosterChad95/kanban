@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "../providers/ThemeProvider";
+import { ModalProvider } from "../providers/ModalProvider";
+import Modal from "../components/ui/Modal/Modal";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-jakarta-sans",
@@ -25,7 +27,9 @@ export default function RootLayout({
         <link rel="icon" href="/icon-board.svg" sizes="32x32" />
       </head>
       <body className={`${plusJakartaSans.variable} font-sans`}>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ModalProvider ModalComponent={Modal}>
+          <ThemeProvider>{children}</ThemeProvider>
+        </ModalProvider>
       </body>
     </html>
   );
