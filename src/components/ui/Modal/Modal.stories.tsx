@@ -77,6 +77,7 @@ export const Default: StoryObj = {
 };
 
 import ViewTaskModal from "./ViewTaskModal";
+import AddTaskModal from "./AddTaskModal";
 
 const mockSubtasks = [
   { id: "1", title: "Subtask 1", completed: true },
@@ -113,4 +114,31 @@ const ViewTaskModalDemo: React.FC = () => {
 
 export const ViewTaskModalInModal: StoryObj = {
   render: () => <ViewTaskModalDemo />,
+};
+
+const AddTaskModalDemo: React.FC = () => {
+  const { openModal, closeModal } = useModal();
+
+  return (
+    <button
+      className="bg-indigo-600 text-white px-4 py-2 rounded"
+      onClick={() =>
+        openModal(
+          <AddTaskModal
+            statusOptions={mockStatusOptions}
+            onCreate={(data) => {
+              alert("Task Created: " + JSON.stringify(data, null, 2));
+              closeModal();
+            }}
+          />
+        )
+      }
+    >
+      Open Add Task Modal
+    </button>
+  );
+};
+
+export const AddTaskModalInModal: StoryObj = {
+  render: () => <AddTaskModalDemo />,
 };
