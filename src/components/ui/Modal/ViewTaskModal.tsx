@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Checkbox from "../CheckBox/Checkbox";
 import { Dropdown } from "../Dropdown/Dropdown";
+import { useForm, Controller, useFieldArray } from "react-hook-form";
 
 type Subtask = {
   id: string;
@@ -24,6 +25,13 @@ type ViewTaskModalProps = {
   onDelete: () => void;
 };
 
+type FormValues = {
+  title: string;
+  description: string;
+  status: string;
+  subtasks: Subtask[];
+};
+
 const ViewTaskModal: React.FC<ViewTaskModalProps> = ({
   title,
   description,
@@ -36,50 +44,43 @@ const ViewTaskModal: React.FC<ViewTaskModalProps> = ({
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
-  const [form, setForm] = useState({
-    title,
-    description,
-    status,
-    subtasks: subtasks.map((s) => ({ ...s })),
-  });
+
+  const { register, handleSubmit, control, setValue, watch, reset } =
+    useForm<FormValues>({
+      defaultValues: {
+        title,
+        description,
+        status,
+        subtasks: subtasks.map((s) => ({ ...s })),
+      },
+    });
 
   // Keep form state in sync with props if modal is reopened with new data
-  React.useEffect(() => {
-    setForm({
+  useEffect(() => {
+    reset({
       title,
       description,
       status,
       subtasks: subtasks.map((s) => ({ ...s })),
     });
-  }, [title, description, status, subtasks]);
+  }, [title, description, status, subtasks, reset]);
 
-  const completedCount = form.subtasks.filter((s) => s.completed).length;
+  const { fields } = useFieldArray({
+    control,
+    name: "subtasks",
+  });
+
+  const formValues = watch();
+
+  const completedCount = formValues.subtasks
+    ? formValues.subtasks.filter((s) => s.completed).length
+    : 0;
 
   const handleSubtaskChange = (id: string | number, checked: boolean) => {
-    setForm((prev) => ({
-      ...prev,
-      subtasks: prev.subtasks.map((s) =>
-        s.id === id ? { ...s, completed: checked } : s
-      ),
-    }));
-  };
-
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleStatusChange = (newStatus: string) => {
-    setForm((prev) => ({
-      ...prev,
-      status: newStatus,
-    }));
-    onStatusChange(newStatus);
+    const idx = fields.findIndex((s) => s.id === id);
+    if (idx !== -1) {
+      setValue(`subtasks.${idx}.completed`, checked, { shouldDirty: true });
+    }
   };
 
   const handleEdit = () => {
@@ -92,25 +93,24 @@ const ViewTaskModal: React.FC<ViewTaskModalProps> = ({
     onDelete();
   };
 
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = (data: FormValues) => {
     setIsEdit(false);
-    onEdit(form);
+    onEdit(data);
   };
 
   return (
-    <form onSubmit={handleSave}>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <div className="flex justify-between items-start mb-6">
         {isEdit ? (
           <input
             className="text-lg font-bold leading-tight w-full bg-gray-100 dark:bg-[#22232e] rounded px-2 py-1"
-            name="title"
-            value={form.title}
-            onChange={handleInputChange}
+            {...register("title")}
             disabled={!isEdit}
           />
         ) : (
-          <h2 className="text-lg font-bold leading-tight">{form.title}</h2>
+          <h2 className="text-lg font-bold leading-tight">
+            {formValues.title}
+          </h2>
         )}
         <div className="relative">
           <button
@@ -145,26 +145,24 @@ const ViewTaskModal: React.FC<ViewTaskModalProps> = ({
       {isEdit ? (
         <textarea
           className="text-gray-900 dark:text-white bg-gray-100 dark:bg-[#22232e] rounded px-2 py-1 mb-6 w-full"
-          name="description"
-          value={form.description}
-          onChange={handleInputChange}
+          {...register("description")}
           disabled={!isEdit}
         />
       ) : (
         <p className="text-gray-500 dark:text-gray-300 mb-6">
-          {form.description}
+          {formValues.description}
         </p>
       )}
       <div className="mb-6">
         <div className="text-xs font-bold text-gray-500 dark:text-gray-300 mb-2">
-          Subtasks ({completedCount} of {form.subtasks.length})
+          Subtasks ({completedCount} of {fields.length})
         </div>
         <div className="flex flex-col gap-2">
           <Checkbox
-            checkboxes={form.subtasks.map((subtask) => ({
+            checkboxes={fields.map((subtask, idx) => ({
               label: subtask.title,
               value: subtask.id,
-              checked: subtask.completed,
+              checked: formValues.subtasks?.[idx]?.completed || false,
               disabled: !isEdit,
             }))}
             onChange={handleSubtaskChange}
@@ -175,10 +173,19 @@ const ViewTaskModal: React.FC<ViewTaskModalProps> = ({
         <div className="text-xs font-bold text-gray-500 dark:text-gray-300 mb-2">
           Current Status
         </div>
-        <Dropdown
-          options={statusOptions}
-          value={form.status}
-          onChange={handleStatusChange}
+        <Controller
+          control={control}
+          name="status"
+          render={({ field }) => (
+            <Dropdown
+              options={statusOptions}
+              value={field.value}
+              onChange={(val: string) => {
+                field.onChange(val);
+                onStatusChange(val);
+              }}
+            />
+          )}
         />
       </div>
       {isEdit && (
