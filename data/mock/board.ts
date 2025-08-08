@@ -3,7 +3,7 @@ import { ColumnType } from "../../src/components/content/Board/Column";
 export const demoColumns: ColumnType[] = [
   {
     name: "TODO",
-    color: "border-blue-500",
+    color: "teal",
     tasks: [
       {
         title: "Build UI for onboarding flow",
@@ -37,7 +37,7 @@ export const demoColumns: ColumnType[] = [
   },
   {
     name: "DOING",
-    color: "border-purple-500",
+    color: "purple",
     tasks: [
       {
         title: "Design settings and search pages",
@@ -71,7 +71,7 @@ export const demoColumns: ColumnType[] = [
   },
   {
     name: "DONE",
-    color: "border-green-500",
+    color: "green",
     tasks: [
       {
         title: "Conduct 5 wireframe tests",
