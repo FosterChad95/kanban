@@ -95,22 +95,15 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
                 {...register(`subtasks.${idx}.title` as const)}
                 className="flex-1"
               />
-              <button
+              <Button
                 type="button"
-                className="flex items-center justify-center text-gray-400 hover:text-red-500"
+                icon={<X />}
+                iconOnly
                 aria-label="Remove subtask"
                 onClick={() => remove(idx)}
                 tabIndex={0}
-                style={{
-                  width: 24,
-                  height: 24,
-                  padding: 0,
-                  background: "none",
-                  border: "none",
-                }}
-              >
-                <X />
-              </button>
+                className="text-gray-400 hover:text-red-500"
+              />
             </div>
           ))}
         </div>
