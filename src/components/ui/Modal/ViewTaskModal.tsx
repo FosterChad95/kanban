@@ -38,7 +38,6 @@ const ViewTaskModal: React.FC<ViewTaskModalProps> = ({
   subtasks = [],
   status,
   statusOptions,
-  onStatusChange,
   onEdit,
   onDelete,
 }) => {
@@ -180,10 +179,8 @@ const ViewTaskModal: React.FC<ViewTaskModalProps> = ({
             <Dropdown
               options={statusOptions}
               value={field.value}
-              onChange={(val: string) => {
-                field.onChange(val);
-                onStatusChange(val);
-              }}
+              onChange={() => {}}
+              disabled={!isEdit}
             />
           )}
         />

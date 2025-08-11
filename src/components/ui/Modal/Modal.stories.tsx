@@ -16,68 +16,11 @@ const meta: Meta = {
 };
 export default meta;
 
-const DemoContent: React.FC = () => {
-  const { openModal } = useModal();
-  return (
-    <div className="flex flex-col gap-4">
-      <button
-        className="bg-indigo-600 text-white px-4 py-2 rounded"
-        onClick={() =>
-          openModal(
-            <div>
-              <h2 className="text-xl font-bold mb-2">Add New Task</h2>
-              <p>
-                This is a demo of a reusable modal. You can put any content
-                here.
-              </p>
-              <DemoCloseButton />
-            </div>
-          )
-        }
-      >
-        Open Add Task Modal
-      </button>
-      <button
-        className="bg-red-600 text-white px-4 py-2 rounded"
-        onClick={() =>
-          openModal(
-            <div>
-              <h2 className="text-xl font-bold mb-2 text-red-600">
-                Delete Board?
-              </h2>
-              <p>
-                Are you sure you want to delete this board? This action cannot
-                be undone.
-              </p>
-              <DemoCloseButton />
-            </div>
-          )
-        }
-      >
-        Open Delete Modal
-      </button>
-    </div>
-  );
-};
-
-function DemoCloseButton() {
-  const { closeModal } = useModal();
-  return (
-    <button
-      className="mt-4 px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-      onClick={closeModal}
-    >
-      Close
-    </button>
-  );
-}
-
-export const Default: StoryObj = {
-  render: () => <DemoContent />,
-};
-
 import ViewTaskModal from "./ViewTaskModal";
+import DeleteModal from "./DeleteModal";
 import AddTaskModal from "./AddTaskModal";
+import AddBoardModal from "./AddBoardModal";
+import EditBoardModal from "./EditBoardModal";
 
 const mockSubtasks = [
   { id: "1", title: "Subtask 1", completed: true },
@@ -112,7 +55,7 @@ const ViewTaskModalDemo: React.FC = () => {
   );
 };
 
-export const ViewTaskModalInModal: StoryObj = {
+export const ViewTaskModalStory: StoryObj = {
   render: () => <ViewTaskModalDemo />,
 };
 
@@ -139,6 +82,129 @@ const AddTaskModalDemo: React.FC = () => {
   );
 };
 
-export const AddTaskModalInModal: StoryObj = {
+export const AddTaskModalStory: StoryObj = {
   render: () => <AddTaskModalDemo />,
+};
+
+const AddBoardModalDemo: React.FC = () => {
+  const { openModal, closeModal } = useModal();
+
+  return (
+    <button
+      className="bg-purple-600 text-white px-4 py-2 rounded"
+      onClick={() =>
+        openModal(
+          <AddBoardModal
+            onCreate={(data) => {
+              alert("Board Created: " + JSON.stringify(data, null, 2));
+              closeModal();
+            }}
+          />
+        )
+      }
+    >
+      Open Add Board Modal
+    </button>
+  );
+};
+
+export const AddBoardModalStory: StoryObj = {
+  render: () => <AddBoardModalDemo />,
+};
+
+const EditBoardModalDemo: React.FC = () => {
+  const { openModal, closeModal } = useModal();
+  const mockBoard = {
+    name: "Platform Launch",
+    columns: [
+      { id: "col1", name: "Todo" },
+      { id: "col2", name: "Doing" },
+      { id: "col3", name: "Done" },
+    ],
+  };
+
+  return (
+    <button
+      className="bg-pink-600 text-white px-4 py-2 rounded"
+      onClick={() =>
+        openModal(
+          <EditBoardModal
+            board={mockBoard}
+            onEdit={(data) => {
+              alert("Board Edited: " + JSON.stringify(data, null, 2));
+              closeModal();
+            }}
+            onDelete={() => {
+              alert("Board Deleted");
+              closeModal();
+            }}
+          />
+        )
+      }
+    >
+      Open Edit Board Modal
+    </button>
+  );
+};
+
+export const EditBoardModalStory: StoryObj = {
+  render: () => <EditBoardModalDemo />,
+};
+
+const DeleteBoardModalDemo: React.FC = () => {
+  const { openModal, closeModal } = useModal();
+  return (
+    <button
+      className="bg-red text-white px-4 py-2 rounded"
+      onClick={() =>
+        openModal(
+          <DeleteModal
+            type="board"
+            name="Platform Launch"
+            open={true}
+            onDelete={() => {
+              alert("Board Deleted");
+              closeModal();
+            }}
+            onCancel={closeModal}
+          />
+        )
+      }
+    >
+      Open Delete Board Modal
+    </button>
+  );
+};
+
+export const DeleteBoardModalStory: StoryObj = {
+  render: () => <DeleteBoardModalDemo />,
+};
+
+const DeleteTaskModalDemo: React.FC = () => {
+  const { openModal, closeModal } = useModal();
+  return (
+    <button
+      className="bg-red text-white px-4 py-2 rounded"
+      onClick={() =>
+        openModal(
+          <DeleteModal
+            type="task"
+            name="Build settings UI"
+            open={true}
+            onDelete={() => {
+              alert("Task Deleted");
+              closeModal();
+            }}
+            onCancel={closeModal}
+          />
+        )
+      }
+    >
+      Open Delete Task Modal
+    </button>
+  );
+};
+
+export const DeleteTaskModalStory: StoryObj = {
+  render: () => <DeleteTaskModalDemo />,
 };
