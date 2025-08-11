@@ -12,7 +12,6 @@ type Board = {
 type EditBoardModalProps = {
   board: Board;
   onEdit: (form: { name: string; columns: { name: string }[] }) => void;
-  onDelete?: () => void;
 };
 
 type FormValues = {
@@ -20,11 +19,7 @@ type FormValues = {
   columns: { id: string; name: string }[];
 };
 
-const EditBoardModal: React.FC<EditBoardModalProps> = ({
-  board,
-  onEdit,
-  onDelete,
-}) => {
+const EditBoardModal: React.FC<EditBoardModalProps> = ({ board, onEdit }) => {
   const {
     register,
     handleSubmit,
@@ -74,16 +69,6 @@ const EditBoardModal: React.FC<EditBoardModalProps> = ({
     >
       <div className="flex justify-between items-start mb-6">
         <h2 className="text-xl font-bold">Edit Board</h2>
-        {onDelete && (
-          <button
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-[#22232e] transition text-red-600"
-            aria-label="Delete board"
-            type="button"
-            onClick={onDelete}
-          >
-            <span className="text-lg font-bold">✕</span>
-          </button>
-        )}
       </div>
       <div className="mb-4">
         <label className="block text-xs font-bold mb-2">Board Name</label>
@@ -105,21 +90,14 @@ const EditBoardModal: React.FC<EditBoardModalProps> = ({
                 {...register(`columns.${idx}.name` as const, {
                   required: true,
                 })}
-                className="flex-1"
+                className="flex-grow"
               />
               <button
                 type="button"
-                className="flex items-center justify-center text-gray-400 hover:text-red-500"
+                className="flex items-center justify-center text-light-gray hover:text-red-500"
                 aria-label="Remove column"
                 onClick={() => remove(idx)}
                 tabIndex={0}
-                style={{
-                  width: 24,
-                  height: 24,
-                  padding: 0,
-                  background: "none",
-                  border: "none",
-                }}
                 disabled={fields.length <= 1}
               >
                 <X />
@@ -130,13 +108,13 @@ const EditBoardModal: React.FC<EditBoardModalProps> = ({
         <Button
           type="button"
           variant="secondary"
-          className="w-full mt-3"
+          className="w-full mt-3 flex-col"
           onClick={() => append({ id: crypto.randomUUID(), name: "" })}
         >
           + Add New Column
         </Button>
       </div>
-      <Button type="submit" className="w-full" variant="primary-l">
+      <Button type="submit" className="w-full flex-col" variant="primary-l">
         Save Changes
       </Button>
     </form>

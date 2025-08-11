@@ -134,10 +134,6 @@ const EditBoardModalDemo: React.FC = () => {
               alert("Board Edited: " + JSON.stringify(data, null, 2));
               closeModal();
             }}
-            onDelete={() => {
-              alert("Board Deleted");
-              closeModal();
-            }}
           />
         )
       }

@@ -20,7 +20,7 @@ const TextField: React.FC<TextFieldProps> = ({
   const inputId = id || `input-${label?.toLowerCase().replace(/\s+/g, "-")}`;
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className={cn("flex flex-col gap-2", className)}>
       {label && (
         <label
           htmlFor={inputId}
@@ -45,8 +45,7 @@ const TextField: React.FC<TextFieldProps> = ({
             "border-red focus:ring-red focus:ring-opacity-25 focus:border-red":
               error,
             "opacity-50 cursor-not-allowed": disabled,
-          },
-          className
+          }
         )}
         disabled={disabled}
         required={required}
