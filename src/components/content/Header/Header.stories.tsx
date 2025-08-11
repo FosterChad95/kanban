@@ -1,5 +1,43 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import Header from "./Header";
+import Header, { Board } from "./Header";
+import { ModalProvider } from "../../../providers/ModalProvider";
+import Modal from "../../ui/Modal/Modal";
+
+// Helper to generate random board names
+function randomBoardName() {
+  const adjectives = [
+    "Agile",
+    "Dynamic",
+    "Creative",
+    "Productive",
+    "Efficient",
+  ];
+  const nouns = ["Launch", "Sprint", "Roadmap", "Workflow", "Backlog"];
+  return (
+    adjectives[Math.floor(Math.random() * adjectives.length)] +
+    " " +
+    nouns[Math.floor(Math.random() * nouns.length)]
+  );
+}
+
+// Generate a random number of boards (2-5), with one randomly active and columns for statusOptions
+function generateMockBoards(): Board[] {
+  const count = Math.floor(Math.random() * 4) + 2; // 2-5 boards
+  const boards: Board[] = [];
+  const activeIndex = Math.floor(Math.random() * count);
+  for (let i = 0; i < count; i++) {
+    boards.push({
+      name: randomBoardName(),
+      active: i === activeIndex,
+      columns: [
+        { id: "1", name: "Todo" },
+        { id: "2", name: "Doing" },
+        { id: "3", name: "Done" },
+      ],
+    });
+  }
+  return boards;
+}
 
 const meta: Meta<typeof Header> = {
   title: "Content/Header",
@@ -14,5 +52,9 @@ export default meta;
 type Story = StoryObj<typeof Header>;
 
 export const Default: Story = {
-  render: () => <Header />,
+  render: () => (
+    <ModalProvider ModalComponent={Modal}>
+      <Header boards={generateMockBoards()} />
+    </ModalProvider>
+  ),
 };
