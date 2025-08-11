@@ -1,10 +1,10 @@
-import { ButtonHTMLAttributes } from "react";
+import { ButtonHTMLAttributes, ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import Icon from "../Icon/Icon";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary-l" | "primary-s" | "secondary" | "destructive";
-  icon?: "eye-slash" | "icon-board";
+  variant?: "primary-l" | "primary-s" | "secondary" | "destructive" | "icon";
+  icon?: ReactNode;
+  iconOnly?: boolean;
 }
 
 const Button = ({
@@ -12,22 +12,34 @@ const Button = ({
   variant = "primary-l",
   children,
   icon,
+  iconOnly = false,
   ...props
 }: ButtonProps) => {
-  // Import Icon here to use in the render
-  // (import will be added at the top)
-  const baseStyles = "rounded-[20px] transition-colors duration-200 flex gap-2";
-
+  const baseStyles =
+    "transition-colors duration-200 flex items-center justify-center gap-2 focus:outline-none";
   const variantStyles = {
     "primary-l":
-      "heading-medium text-white bg-main-purple hover:bg-main-purple-light px-[61px] py-[15px]",
+      "rounded-[20px] heading-medium text-white bg-main-purple hover:bg-main-purple-light px-[61px] py-[15px]",
     "primary-s":
-      "body-large text-white bg-main-purple hover:bg-main-purple-light px-[70px] py-2",
+      "rounded-[20px] body-large text-white bg-main-purple hover:bg-main-purple-light px-[70px] py-2",
     secondary:
-      "body-large text-main-purple bg-[rgba(99,95,199,0.10)] hover:bg-[rgba(99,95,199,0.25)] px-[70px] py-2",
+      "rounded-[20px] body-large text-main-purple bg-[rgba(99,95,199,0.10)] hover:bg-[rgba(99,95,199,0.25)] px-[70px] py-2",
     destructive:
-      "body-large text-white bg-red hover:bg-red-hover px-[70px] py-2",
+      "rounded-[20px] body-large text-white bg-red hover:bg-red-hover px-[70px] py-2",
+    icon: "rounded-full p-2 w-8 h-8 flex items-center justify-center bg-transparent hover:bg-gray-100 dark:hover:bg-[#22232e]",
   };
+
+  // If iconOnly, force icon variant and render only icon
+  if (iconOnly) {
+    return (
+      <button
+        className={cn(baseStyles, variantStyles["icon"], className)}
+        {...props}
+      >
+        {icon}
+      </button>
+    );
+  }
 
   return (
     <button
@@ -36,7 +48,7 @@ const Button = ({
     >
       {icon && (
         <span className="inline-flex items-center justify-center mr-2">
-          <Icon name={icon} />
+          {icon}
         </span>
       )}
       {children}

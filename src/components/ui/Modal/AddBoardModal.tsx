@@ -163,12 +163,14 @@ const AddBoardModal: React.FC<AddBoardModalProps> = ({
                 className="flex-1"
                 disabled={board && !isEdit}
               />
-              <button
+              <Button
                 type="button"
-                className="flex items-center justify-center text-gray-400 hover:text-red-500"
+                icon={<X />}
+                iconOnly
                 aria-label="Remove column"
                 onClick={() => remove(idx)}
                 tabIndex={0}
+                className="text-gray-400 hover:text-red-500"
                 style={{
                   width: 24,
                   height: 24,
@@ -177,9 +179,7 @@ const AddBoardModal: React.FC<AddBoardModalProps> = ({
                   border: "none",
                 }}
                 disabled={fields.length <= 1 || (board && !isEdit)}
-              >
-                <X />
-              </button>
+              />
             </div>
           ))}
         </div>
