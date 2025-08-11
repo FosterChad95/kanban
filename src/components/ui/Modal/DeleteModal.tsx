@@ -1,5 +1,6 @@
 import React from "react";
 import Modal from "./Modal";
+import Button from "../Button/Button";
 
 interface DeleteModalProps {
   type: "task" | "board";
@@ -29,18 +30,22 @@ const DeleteModal: React.FC<DeleteModalProps> = ({
             : `Are you sure you want to delete the ‘${name}’ task and its subtasks? This action cannot be reversed.`}
         </p>
         <div className="flex gap-4">
-          <button
-            className="flex-1 bg-red text-white py-2 rounded transition"
+          <Button
+            className="flex-1"
+            variant="destructive"
             onClick={onDelete}
+            type="button"
           >
             Delete
-          </button>
-          <button
-            className="flex-1 bg-light-gray text-purple-600 py-2 rounded transition"
+          </Button>
+          <Button
+            className="flex-1"
+            variant="secondary"
             onClick={onCancel}
+            type="button"
           >
             Cancel
-          </button>
+          </Button>
         </div>
       </div>
     </Modal>

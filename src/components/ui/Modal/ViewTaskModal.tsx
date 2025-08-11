@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Checkbox from "../CheckBox/Checkbox";
 import { Dropdown } from "../Dropdown/Dropdown";
+import Button from "../Button/Button";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 
 type Subtask = {
@@ -112,31 +113,34 @@ const ViewTaskModal: React.FC<ViewTaskModalProps> = ({
           </h2>
         )}
         <div className="relative">
-          <button
+          <Button
             className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-[#22232e] transition"
             aria-label="Task menu"
             tabIndex={0}
             type="button"
             onClick={() => setIsMenuOpen((v) => !v)}
+            variant="secondary"
           >
             <span className="text-2xl">⋮</span>
-          </button>
+          </Button>
           {isMenuOpen && (
             <div className="absolute right-0 mt-2 w-32 bg-white dark:bg-[#2b2c37] rounded shadow-lg z-10">
-              <button
+              <Button
                 className="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#22232e] text-sm"
                 type="button"
                 onClick={handleEdit}
+                variant="secondary"
               >
                 Edit Task
-              </button>
-              <button
+              </Button>
+              <Button
                 className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-[#22232e] text-sm"
                 type="button"
                 onClick={handleDelete}
+                variant="destructive"
               >
                 Delete Task
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -187,12 +191,13 @@ const ViewTaskModal: React.FC<ViewTaskModalProps> = ({
       </div>
       {isEdit && (
         <div className="flex justify-end mt-6">
-          <button
+          <Button
             type="submit"
             className="bg-indigo-600 text-white px-4 py-2 rounded"
+            variant="primary-l"
           >
             Save
-          </button>
+          </Button>
         </div>
       )}
     </form>
