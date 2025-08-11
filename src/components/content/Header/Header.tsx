@@ -3,15 +3,86 @@ import Logo from "../../../images/Logo";
 import LogoMobile from "../../../images/LogoMobile";
 import IconBoardIcon from "../../ui/Icon/IconBoardIcon";
 import ThemeToggle from "../../ui/ThemeToggle/ThemeToggle";
+import Button from "../../ui/Button/Button";
+import { useModal } from "../../../providers/ModalProvider";
+import AddTaskModal from "../../ui/Modal/AddTaskModal";
+import EditBoardModal from "../../ui/Modal/EditBoardModal";
+import DeleteModal from "../../ui/Modal/DeleteModal";
 
-const boards = [
-  { name: "Platform Launch", active: true },
-  { name: "Marketing Plan", active: false },
-  { name: "Roadmap", active: false },
-];
+export interface Board {
+  name: string;
+  active: boolean;
+  columns?: { id: string; name: string }[]; // for EditBoardModal
+}
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  boards: Board[];
+}
+
+const Header: React.FC<HeaderProps> = ({ boards }) => {
+  const { openModal, closeModal } = useModal();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [ellipsisOpen, setEllipsisOpen] = useState(false);
+  const ellipsisRef = React.useRef<HTMLDivElement>(null);
+
+  // Find the active board
+  const activeBoard = boards.find((b) => b.active) ||
+    boards[0] || { name: "Board", columns: [] };
+  // Status options for AddTaskModal (use columns if present, else fallback)
+  const statusOptions = activeBoard.columns?.map((col) => col.name) || [
+    "Todo",
+    "Doing",
+    "Done",
+  ];
+
+  // Handlers for modals
+  const handleAddTask = () => {
+    openModal(
+      <AddTaskModal
+        statusOptions={statusOptions}
+        onCreate={() => {
+          // No-op for demo
+          closeModal();
+        }}
+      />
+    );
+  };
+
+  const handleEditBoard = () => {
+    openModal(
+      <EditBoardModal
+        board={{
+          name: activeBoard.name,
+          columns: activeBoard.columns || [
+            { id: "1", name: "Todo" },
+            { id: "2", name: "Doing" },
+            { id: "3", name: "Done" },
+          ],
+        }}
+        onEdit={() => {
+          // No-op for demo
+          closeModal();
+        }}
+      />
+    );
+    setEllipsisOpen(false);
+  };
+
+  const handleDeleteBoard = () => {
+    openModal(
+      <DeleteModal
+        type="board"
+        name={activeBoard.name}
+        onDelete={() => {
+          // No-op for demo
+          closeModal();
+        }}
+        onCancel={closeModal}
+        open={true}
+      />
+    );
+    setEllipsisOpen(false);
+  };
 
   return (
     <header className="w-full border-b border-gray-200 md:border-none bg-white px-4 py-2 flex items-center justify-between md:px-8 md:py-0 md:h-24">
@@ -30,7 +101,8 @@ const Header: React.FC = () => {
             aria-label="Open board menu"
           >
             <span className="font-bold text-lg text-black select-none">
-              Platform Launch
+              {boards.find((b) => b.active)?.name ||
+                (boards[0]?.name ?? "Board")}
             </span>
             <svg
               className={`w-4 h-4 ml-1 transition-transform ${
@@ -49,50 +121,115 @@ const Header: React.FC = () => {
             </svg>
           </button>
         </div>
+        {/* Desktop: Active Board Name */}
+        <div className="hidden md:flex items-center ml-6 flex-grow">
+          <span className="font-bold text-lg text-black select-none mr-4">
+            {boards.find((b) => b.active)?.name || (boards[0]?.name ?? "Board")}
+          </span>
+        </div>
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-4">
-          <button className="bg-[#635FC7]/10 text-[#635FC7] font-medium px-6 py-2 rounded-full text-sm hover:bg-[#635FC7]/20 transition">
+          <Button
+            variant="secondary"
+            className="font-medium px-6 py-2 text-sm"
+            onClick={handleAddTask}
+          >
             + Add New Task
-          </button>
+          </Button>
           {/* Vertical Ellipsis */}
-          <button className="p-2" aria-label="More options">
-            <svg
-              className="w-6 h-6 text-gray-400"
-              fill="currentColor"
-              viewBox="0 0 24 24"
+          <div className="relative" ref={ellipsisRef}>
+            <Button
+              className="p-2 w-10 h-10 flex items-center justify-center"
+              aria-label="More options"
+              variant="secondary"
+              onClick={(e) => {
+                e.stopPropagation();
+                setEllipsisOpen((v) => !v);
+              }}
             >
-              <circle cx="12" cy="5" r="1.5" />
-              <circle cx="12" cy="12" r="1.5" />
-              <circle cx="12" cy="19" r="1.5" />
-            </svg>
-          </button>
+              <svg
+                className="w-6 h-6 text-gray-400"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <circle cx="12" cy="5" r="1.5" />
+                <circle cx="12" cy="12" r="1.5" />
+                <circle cx="12" cy="19" r="1.5" />
+              </svg>
+            </Button>
+            {ellipsisOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-50 flex flex-col py-2">
+                <button
+                  className="text-gray-700 px-4 py-2 text-left hover:bg-gray-100"
+                  onClick={handleEditBoard}
+                >
+                  Edit Board
+                </button>
+                <button
+                  className="text-red-500 px-4 py-2 text-left hover:bg-red-50"
+                  onClick={handleDeleteBoard}
+                >
+                  Delete Board
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Mobile Actions */}
         <div className="flex items-center gap-2 md:hidden">
           {/* Add Task Button */}
-          <button
-            className="bg-[#635FC7]/10 text-[#635FC7] p-2 rounded-full"
+          <Button
+            className="bg-main-purple/10 text-main-purple p-2 rounded-full w-10 h-10 flex items-center justify-center"
             aria-label="Add New Task"
+            variant="secondary"
+            style={{ backgroundColor: "rgba(99,95,199,0.10)" }}
+            onClick={handleAddTask}
           >
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
               <rect x="11" y="4" width="2" height="16" rx="1" />
               <rect x="4" y="11" width="16" height="2" rx="1" />
             </svg>
-          </button>
+          </Button>
           {/* Vertical Ellipsis */}
-          <button className="p-2" aria-label="More options">
-            <svg
-              className="w-6 h-6 text-gray-400"
-              fill="currentColor"
-              viewBox="0 0 24 24"
+          <div className="relative" ref={ellipsisRef}>
+            <Button
+              className="p-2 w-10 h-10 flex items-center justify-center"
+              aria-label="More options"
+              variant="secondary"
+              onClick={(e) => {
+                e.stopPropagation();
+                setEllipsisOpen((v) => !v);
+              }}
             >
-              <circle cx="12" cy="5" r="1.5" />
-              <circle cx="12" cy="12" r="1.5" />
-              <circle cx="12" cy="19" r="1.5" />
-            </svg>
-          </button>
+              <svg
+                className="w-6 h-6 text-gray-400"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <circle cx="12" cy="5" r="1.5" />
+                <circle cx="12" cy="12" r="1.5" />
+                <circle cx="12" cy="19" r="1.5" />
+              </svg>
+            </Button>
+            {ellipsisOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-50 flex flex-col py-2">
+                <button
+                  className="text-gray-700 px-4 py-2 text-left hover:bg-gray-100"
+                  onClick={handleEditBoard}
+                >
+                  Edit Board
+                </button>
+                <button
+                  className="text-red-500 px-4 py-2 text-left hover:bg-red-50"
+                  onClick={handleDeleteBoard}
+                >
+                  Delete Board
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -102,39 +239,43 @@ const Header: React.FC = () => {
           <div className="bg-white rounded-xl shadow-lg w-80 p-6 flex flex-col gap-4">
             <div>
               <div className="text-xs text-gray-400 tracking-widest mb-4">
-                ALL BOARDS (3)
+                ALL BOARDS ({boards.length})
               </div>
               <ul className="flex flex-col gap-2">
                 {boards.map((board) => (
                   <li key={board.name}>
-                    <button
+                    <Button
                       className={`flex items-center gap-3 w-full px-4 py-2 rounded-full text-left ${
                         board.active
-                          ? "bg-[#635FC7] text-white"
+                          ? "bg-main-purple text-white"
                           : "text-gray-500 hover:bg-gray-100"
                       }`}
+                      variant="secondary"
                     >
                       <IconBoardIcon
                         className={`w-5 h-5 ${
-                          board.active ? "text-white" : "text-[#635FC7]"
+                          board.active ? "text-white" : "text-main-purple"
                         }`}
                       />
                       <span
                         className={`font-medium ${
-                          board.active ? "text-white" : "text-[#635FC7]"
+                          board.active ? "text-white" : "text-main-purple"
                         }`}
                       >
                         {board.name}
                       </span>
-                    </button>
+                    </Button>
                   </li>
                 ))}
                 <li>
-                  <button className="flex items-center gap-3 w-full px-4 py-2 rounded-full text-[#635FC7] hover:bg-[#635FC7]/10 font-medium">
+                  <Button
+                    className="flex items-center gap-3 w-full px-4 py-2 rounded-full text-main-purple hover:bg-main-purple/10 font-medium"
+                    variant="secondary"
+                  >
                     <svg
                       className="w-5 h-5"
                       fill="none"
-                      stroke="#635FC7"
+                      stroke="currentColor"
                       strokeWidth={2}
                       viewBox="0 0 24 24"
                     >
@@ -142,7 +283,7 @@ const Header: React.FC = () => {
                       <rect x="4" y="11" width="16" height="2" rx="1" />
                     </svg>
                     + Create New Board
-                  </button>
+                  </Button>
                 </li>
               </ul>
             </div>
