@@ -2,6 +2,7 @@ import React from "react";
 import Button from "@/components/ui/Button/Button";
 import ThemeToggle from "@/components/ui/ThemeToggle/ThemeToggle";
 import EyeSlashIcon from "@/components/ui/Icon/EyeSlashIcon";
+import SettingsModal from "@/components/ui/Modal/SettingsModal";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface BoardProps {
@@ -21,6 +22,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onCreateBoard,
 }) => {
   const [visible, setVisible] = React.useState(true);
+  const [settingsOpen, setSettingsOpen] = React.useState(false);
   const numberBoards = boards.length;
 
   return (
@@ -64,6 +66,13 @@ const Sidebar: React.FC<SidebarProps> = ({
             {/* Bottom controls */}
             <div className="mt-auto flex flex-col items-center gap-4 pb-4">
               <ThemeToggle />
+              <Button
+                variant="secondary"
+                className="w-full mb-2"
+                onClick={() => setSettingsOpen(true)}
+              >
+                Settings
+              </Button>
               <button
                 className="flex items-center gap-2 text-medium-gray hover:text-main-purple transition-colors px-4 py-2 rounded focus:outline-none"
                 onClick={() => setVisible(false)}
@@ -72,6 +81,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <span className="font-semibold text-base">Hide Sidebar</span>
               </button>
             </div>
+            <SettingsModal
+              isOpen={settingsOpen}
+              onClose={() => setSettingsOpen(false)}
+            />
           </motion.aside>
         )}
       </AnimatePresence>
