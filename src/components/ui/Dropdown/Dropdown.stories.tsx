@@ -64,3 +64,13 @@ export const ManyOptions: Story = {
   },
   render: (args) => <DropdownWrapper {...args} />,
 };
+
+export const MultiSelect: Story = {
+  args: {
+    options: ["Alice", "Bob", "Charlie", "Diana"],
+    value: [],
+    placeholder: "Select multiple users",
+    multiSelect: true,
+  },
+  render: (args) => <DropdownWrapper {...args} />,
+};

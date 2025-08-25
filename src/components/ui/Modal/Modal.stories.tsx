@@ -21,6 +21,7 @@ import DeleteModal from "./DeleteModal";
 import AddTaskModal from "./AddTaskModal";
 import AddBoardModal from "./AddBoardModal";
 import EditBoardModal from "./EditBoardModal";
+import AddTeamModal from "./AddTeamModal";
 
 const mockSubtasks = [
   { id: "1", title: "Subtask 1", completed: true },
@@ -203,4 +204,36 @@ const DeleteTaskModalDemo: React.FC = () => {
 
 export const DeleteTaskModalStory: StoryObj = {
   render: () => <DeleteTaskModalDemo />,
+};
+
+const AddTeamModalDemo: React.FC = () => {
+  const { openModal, closeModal } = useModal();
+  const mockUsers = [
+    "alice@example.com",
+    "bob@example.com",
+    "carol@example.com",
+  ];
+
+  return (
+    <button
+      className="bg-green-600 text-white px-4 py-2 rounded"
+      onClick={() =>
+        openModal(
+          <AddTeamModal
+            users={mockUsers}
+            onCreate={(data) => {
+              alert("Team Created: " + JSON.stringify(data, null, 2));
+              closeModal();
+            }}
+          />
+        )
+      }
+    >
+      Open Add Team Modal
+    </button>
+  );
+};
+
+export const AddTeamModalStory: StoryObj = {
+  render: () => <AddTeamModalDemo />,
 };

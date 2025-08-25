@@ -3,32 +3,34 @@ import React, { useState } from "react";
 import Header from "./content/Header/Header";
 import Sidebar from "./content/Sidebar/Sidebar";
 import Board from "./content/Board/Board";
-import type { ColumnType } from "./content/Board/Column";
-
-type BoardData = {
-  id: string;
-  name: string;
-  active: boolean;
-  columns: ColumnType[];
-};
+import type { Board as BoardType, Column, Task, Subtask } from "@prisma/client";
 
 interface MainBoardLayoutProps {
-  boards: BoardData[];
-  columns: ColumnType[];
+  boards: Array<
+    BoardType & {
+      columns: Array<
+        Column & {
+          tasks: Array<
+            Task & {
+              subtasks: Subtask[];
+            }
+          >;
+        }
+      >;
+    }
+  >;
 }
 
-const MainBoardLayout: React.FC<MainBoardLayoutProps> = ({
-  boards,
-  columns,
-}) => {
+const MainBoardLayout: React.FC<MainBoardLayoutProps> = ({ boards }) => {
   const [sidebarVisible, setSidebarVisible] = useState(true);
 
   // For Header, convert boards to expected prop shape
   const headerBoards = boards.map((b) => ({
     name: b.name,
-    active: b.active,
-    columns: b.columns.map((col) => ({
-      id: col.name, // Use name as id for mock/demo
+    // Prisma does not provide "active" field, so default to false or handle elsewhere
+    active: false,
+    columns: b.columns.map((col: Column) => ({
+      id: col.id,
       name: col.name,
     })),
   }));
@@ -38,6 +40,30 @@ const MainBoardLayout: React.FC<MainBoardLayoutProps> = ({
     id: b.id,
     name: b.name,
   }));
+
+  // Assign colors to columns (cycling through available colors)
+  const colorPalette = ["teal", "purple", "green"] as const;
+  const getColor = (idx: number) => colorPalette[idx % colorPalette.length];
+
+  // Flatten all columns for the current board (assuming first board for demo)
+  const currentBoard = boards[0];
+  const columns =
+    currentBoard?.columns.map(
+      (
+        col: Column & { tasks: Array<Task & { subtasks: Subtask[] }> },
+        idx: number
+      ) => ({
+        name: col.name,
+        color: getColor(idx),
+        tasks: col.tasks.map((task: Task & { subtasks: Subtask[] }) => ({
+          title: task.title,
+          subtasks: task.subtasks.map((sub: Subtask) => ({
+            title: sub.title,
+            completed: sub.isCompleted,
+          })),
+        })),
+      })
+    ) ?? [];
 
   return (
     <div className="flex flex-col min-h-screen bg-light-gray">
