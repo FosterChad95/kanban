@@ -62,3 +62,37 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+// Kanban Board Models
+
+model Board {
+  id      String   @id @default(cuid())
+  name    String
+  columns Column[]
+}
+
+model Column {
+  id      String @id @default(cuid())
+  name    String
+  board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  boardId String
+  tasks   Task[]
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  column      Column    @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  columnId    String
+  subtasks    Subtask[]
+  // Status is determined by the column the task is in
+}
+
+model Subtask {
+  id          String  @id @default(cuid())
+  title       String
+  isCompleted Boolean @default(false)
+  task        Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId      String
+}

@@ -1,10 +1,10 @@
-import NextAuth from "next-auth";
+import NextAuth, { Session, User, SessionStrategy } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "@/lib/prisma";
 
-const handler = NextAuth({
+export const authOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
     GoogleProvider({
@@ -18,18 +18,26 @@ const handler = NextAuth({
   ],
   secret: process.env.NEXTAUTH_SECRET,
   session: {
-    strategy: "database",
+    strategy: "database" as SessionStrategy,
   },
   callbacks: {
-    async session({ session, user }) {
+    async session({
+      session,
+      user,
+    }: {
+      session: Session;
+      user: User & { role?: string; id?: string };
+    }) {
       // Optionally add user id and role to session
       if (session.user) {
         session.user.id = user.id;
-        session.user.role = user.role;
+        session.user.role = user.role as string;
       }
       return session;
     },
   },
-});
+};
+
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };
