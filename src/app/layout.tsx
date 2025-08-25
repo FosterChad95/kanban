@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "../providers/ThemeProvider";
+import NextAuthSessionProvider from "../providers/SessionProvider";
 import { ModalProvider } from "../providers/ModalProvider";
 import Modal from "../components/ui/Modal/Modal";
 
@@ -28,7 +29,9 @@ export default function RootLayout({
       </head>
       <body className={`${plusJakartaSans.variable} font-sans`}>
         <ModalProvider ModalComponent={Modal}>
-          <ThemeProvider>{children}</ThemeProvider>
+          <NextAuthSessionProvider>
+            <ThemeProvider>{children}</ThemeProvider>
+          </NextAuthSessionProvider>
         </ModalProvider>
       </body>
     </html>
