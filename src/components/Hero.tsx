@@ -14,7 +14,7 @@ const Hero: React.FC<HeroProps> = ({
   backgroundImage = "url('https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=1500&q=80')",
 }) => (
   <div
-    className="flex flex-col items-center justify-center flex-1 w-full min-h-[70vh] pt-32"
+    className="flex flex-col items-center justify-center flex-1 w-full min-h-[70vh] pt-6 md:pl-0 md:pr-0 pl-6 pr-6"
     style={{
       backgroundImage,
       backgroundSize: "cover",
@@ -23,10 +23,10 @@ const Hero: React.FC<HeroProps> = ({
   >
     <div className="bg-white/80 rounded-xl p-10 shadow-lg flex flex-col items-center">
       {children}
-      <h1 className="text-5xl font-extrabold text-main-purple mb-6 drop-shadow-lg text-center">
+      <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-main-purple mb-6 drop-shadow-lg text-center">
         {title}
       </h1>
-      <p className="text-xl text-gray-700 max-w-xl mb-8 text-center">
+      <p className="text-base sm:text-lg md:text-xl text-gray-700 max-w-xl mb-8 text-center">
         {description}
       </p>
     </div>

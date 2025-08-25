@@ -22,14 +22,14 @@ export default function SignInPage() {
         <Button
           variant="primary-l"
           className="w-full mb-4"
-          onClick={() => signIn("google")}
+          onClick={() => signIn("google", { callbackUrl: "/" })}
         >
           Sign in with Google
         </Button>
         <Button
           variant="secondary"
           className="w-full"
-          onClick={() => signIn("github")}
+          onClick={() => signIn("github", { callbackUrl: "/" })}
         >
           Sign in with GitHub
         </Button>

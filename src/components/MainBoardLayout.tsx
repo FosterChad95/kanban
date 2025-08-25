@@ -40,20 +40,22 @@ const MainBoardLayout: React.FC<MainBoardLayoutProps> = ({
   }));
 
   return (
-    <div className="flex min-h-screen bg-light-gray">
-      {/* Sidebar */}
-      {sidebarVisible && (
-        <Sidebar
-          boards={sidebarBoards}
-          onBoardClick={() => {}}
-          onCreateBoard={() => {}}
-        />
-      )}
-      <div className="flex flex-col flex-1">
-        {/* Header */}
-        <Header boards={headerBoards} />
+    <div className="flex flex-col min-h-screen bg-light-gray">
+      {/* Header */}
+      <Header boards={headerBoards} />
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar below Header */}
+        {sidebarVisible && (
+          <Sidebar
+            boards={sidebarBoards}
+            onBoardClick={() => {}}
+            onCreateBoard={() => {}}
+            // Optionally, pass a className to control height/scroll
+            // className="h-full max-h-full overflow-y-auto"
+          />
+        )}
         {/* Board */}
-        <main className="flex-1 flex flex-col">
+        <main className="flex-1 flex flex-col overflow-auto">
           <Board columns={columns} />
         </main>
       </div>

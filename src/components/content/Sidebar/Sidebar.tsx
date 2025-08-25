@@ -4,6 +4,7 @@ import ThemeToggle from "@/components/ui/ThemeToggle/ThemeToggle";
 import EyeSlashIcon from "@/components/ui/Icon/EyeSlashIcon";
 import SettingsModal from "@/components/ui/Modal/SettingsModal";
 import { motion, AnimatePresence } from "framer-motion";
+import IconBoardIcon from "@/components/ui/Icon/IconBoardIcon";
 
 interface BoardProps {
   id: string;
@@ -35,7 +36,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -300, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed left-0 top-0 z-20 w-[270px] bg-white border-r border-r-[#E4EBFA] flex flex-col py-4 h-screen pr-[24px] shadow-lg"
+            className="w-[270px] bg-white border-r border-r-[#E4EBFA] flex flex-col py-4 h-full pr-[24px] min-h-screen shadow-lg overflow-y-auto"
           >
             <div className="flex-1">
               <h2 className="py-4 pl-8 text-medium-gray tracking-[2.4px] uppercase font-bold text-xs">
@@ -45,18 +46,18 @@ const Sidebar: React.FC<SidebarProps> = ({
                 {boards.map((board) => (
                   <Button
                     key={board.id}
-                    icon={"icon-board"}
+                    icon={<IconBoardIcon />}
                     variant="secondary"
-                    className="rounded-tr-[100px] pr-0 rounded-br-[100px] rounded-tl-none rounded-bl-none w-full pl-8 py-[14px] hover:bg-main-purple transition-all hover:text-white"
+                    className="rounded-tr-[100px] justify-start rounded-br-[100px] rounded-tl-none rounded-bl-none w-full pl-8 py-[14px] hover:bg-main-purple transition-all hover:text-white"
                     onClick={() => onBoardClick?.(board.id)}
                   >
                     {board.name}
                   </Button>
                 ))}
                 <Button
-                  icon="icon-board"
+                  icon={<IconBoardIcon />}
                   variant="primary-l"
-                  className="text-left !font-normal pr-0 pl-8 bg-transparent text-main-purple hover:bg-transparent hover:text-main-purple-light transition-all"
+                  className="text-left justify-start !font-normal pr-0 pl-8 bg-transparent text-main-purple hover:bg-transparent hover:text-main-purple-light transition-all"
                   onClick={onCreateBoard}
                 >
                   + Create new board
