@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "./api/auth/[...nextauth]/route";
 import MainBoardLayout from "../components/MainBoardLayout";
-import prisma from "../lib/prisma";
+import { getAllBoards } from "../queries/boardQueries";
 import React from "react";
 import Navbar from "../components/content/Header/Navbar";
 import WelcomeText from "@/images/WelcomeText";
@@ -60,19 +60,7 @@ export default async function Home() {
     );
   }
 
-  const dbBoards = await prisma.board.findMany({
-    include: {
-      columns: {
-        include: {
-          tasks: {
-            include: {
-              subtasks: true,
-            },
-          },
-        },
-      },
-    },
-  });
+  const dbBoards = await getAllBoards();
 
   const boards = dbBoards.map((board) => ({
     id: board.id,
