@@ -27,7 +27,8 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "data/mock/**/*.ts"
+    "data/mock/**/*.ts",
+    "src/types/next-auth.d.ts"
   ],
   "exclude": ["node_modules"]
 }
