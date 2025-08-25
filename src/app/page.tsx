@@ -1,19 +1,12 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "./api/auth/[...nextauth]/route";
 import MainBoardLayout from "../components/MainBoardLayout";
-import { demoColumns } from "../../data/mock/board";
+import prisma from "../lib/prisma";
 import React from "react";
 import Navbar from "../components/content/Header/Navbar";
 import WelcomeText from "@/images/WelcomeText";
 import Hero from "../components/Hero";
 import TextAndImage from "../components/TextAndImage";
-
-// Mock boards data for Header and Sidebar
-const boards = [
-  { id: "1", name: "Platform Launch", active: true, columns: demoColumns },
-  { id: "2", name: "Marketing Plan", active: false, columns: [] },
-  { id: "3", name: "Roadmap", active: false, columns: [] },
-];
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
@@ -67,6 +60,41 @@ export default async function Home() {
     );
   }
 
-  // Show main board layout for authenticated users
-  return <MainBoardLayout boards={boards} columns={demoColumns} />;
+  const dbBoards = await prisma.board.findMany({
+    include: {
+      columns: {
+        include: {
+          tasks: {
+            include: {
+              subtasks: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const boards = dbBoards.map((board) => ({
+    id: board.id,
+    name: board.name,
+    columns: board.columns.map((col) => ({
+      id: col.id,
+      name: col.name,
+      boardId: col.boardId,
+      tasks: col.tasks.map((task) => ({
+        id: task.id,
+        title: task.title,
+        description: task.description,
+        columnId: task.columnId,
+        subtasks: task.subtasks.map((sub) => ({
+          id: sub.id,
+          title: sub.title,
+          isCompleted: sub.isCompleted,
+          taskId: sub.taskId,
+        })),
+      })),
+    })),
+  }));
+
+  return <MainBoardLayout boards={boards} />;
 }
