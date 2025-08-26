@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import AddBoardModal from "../../../components/ui/Modal/AddBoardModal";
 import { Prisma } from "@prisma/client";

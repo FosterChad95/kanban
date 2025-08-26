@@ -18,7 +18,7 @@ export const SubtaskSchema = z.object({
 export const AddTaskSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
   description: z.string().optional().or(z.literal("")),
-  status: z.string().min(1, { message: "Status is required" }),
+  columnId: z.string().min(1, { message: "Column is required" }),
   subtasks: z
     .array(SubtaskSchema)
     .min(0)

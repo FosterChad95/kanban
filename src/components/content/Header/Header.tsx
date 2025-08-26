@@ -33,33 +33,29 @@ const Header: React.FC<HeaderProps> = ({ boards }) => {
   const activeBoard = boards.find((b) => b.active) ||
     boards[0] || { name: "Board", columns: [] };
 
-  const statusOptions = activeBoard.columns?.map((col) => col.name) || [];
-
   // Handlers for modals
   const handleAddTask = () => {
     openModal(
       <AddTaskModal
-        statusOptions={statusOptions}
+        columns={activeBoard.columns || []}
+        boardId={activeBoard.id ?? ""}
         onCreate={async (payload: {
           title: string;
           description: string;
-          status: string;
+          columnId: string;
           subtasks: { title: string }[];
+          boardId: string;
         }) => {
           try {
-            // Resolve columnId from status (column name)
-            const col = activeBoard.columns?.find(
-              (c) => c.name === payload.status
-            );
-            const columnId = col?.id || activeBoard.columns?.[0]?.id;
             await fetch("/api/tasks", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 title: payload.title,
                 description: payload.description,
-                columnId,
+                columnId: payload.columnId,
                 subtasks: payload.subtasks,
+                boardId: payload.boardId,
               }),
             });
             closeModal();

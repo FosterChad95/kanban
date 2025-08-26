@@ -29,9 +29,9 @@ const Board: React.FC<BoardProps> = ({ columns }) => {
   };
 
   return (
-    <div className="flex flex-col flex-1 min-h-screen bg-light-gray p-6">
+    <div className="flex flex-col flex-1 h-full bg-light-gray p-6">
       {columns.length === 0 ? (
-        <div className="flex flex-1 flex-col items-center justify-center rounded-lg">
+        <div className="flex flex-1 h-full flex-col items-center justify-center rounded-lg">
           <p className="mb-6 text-medium-gray font-bold text-lg">
             This board is empty. Create a new column to get started.
           </p>
@@ -40,7 +40,7 @@ const Board: React.FC<BoardProps> = ({ columns }) => {
           </Button>
         </div>
       ) : (
-        <div className="flex gap-6 overflow-x-auto">
+        <div className="flex gap-6 h-full overflow-x-auto">
           {columns.map((column) => (
             <Column key={column.id} column={column} allColumns={columns} />
           ))}

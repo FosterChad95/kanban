@@ -25,7 +25,15 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const created = await createTask(body);
+    // Transform subtasks to Prisma nested create format if present
+    const data = {
+      ...body,
+      subtasks:
+        body.subtasks && body.subtasks.length > 0
+          ? { create: body.subtasks }
+          : undefined,
+    };
+    const created = await createTask(data);
     return NextResponse.json(created, { status: 201 });
   } catch (err) {
     console.error("POST /api/tasks error:", err);

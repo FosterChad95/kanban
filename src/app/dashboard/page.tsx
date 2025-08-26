@@ -1,6 +1,6 @@
 import React from "react";
 import MainBoardLayout from "../../components/MainBoardLayout";
-import { getAllBoards } from "../../queries/boardQueries";
+import { getBoardsForUser } from "../../queries/boardQueries";
 import { getCurrentUser } from "../../lib/auth";
 import { redirect } from "next/navigation";
 
@@ -22,7 +22,9 @@ export default async function DashboardPage() {
     redirect("/admin");
   }
 
-  const dbBoards = await getAllBoards();
+  const dbBoards = await getBoardsForUser(user.id);
+
+  console.log(dbBoards);
 
   const boards = dbBoards.map((board) => ({
     id: board.id,
@@ -36,6 +38,7 @@ export default async function DashboardPage() {
         title: task.title,
         description: task.description,
         columnId: task.columnId,
+        boardId: col.boardId,
         subtasks: task.subtasks.map((sub) => ({
           id: sub.id,
           title: sub.title,

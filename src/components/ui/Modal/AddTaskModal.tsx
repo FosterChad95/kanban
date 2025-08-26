@@ -16,22 +16,29 @@ const addTaskResolver = zodResolver(
   AddTaskSchema
 ) as unknown as Resolver<AddTaskFormValues>;
 
+type SubtaskCreateInput = {
+  title: string;
+  isCompleted: boolean;
+};
+
 type AddTaskModalProps = {
-  statusOptions: string[];
+  columns: { id: string; name: string }[];
+  boardId: string;
   onCreate: (form: {
     title: string;
     description: string;
-    status: string;
-    subtasks: { title: string }[];
+    columnId: string;
+    subtasks: SubtaskCreateInput[];
+    boardId: string;
   }) => void;
 };
 
 const AddTaskModal: React.FC<AddTaskModalProps> = ({
-  statusOptions,
+  columns,
+  boardId,
   onCreate,
 }) => {
-  const defaultStatus =
-    statusOptions && statusOptions.length > 0 ? statusOptions[0] : "";
+  const defaultColumnId = columns && columns.length > 0 ? columns[0].id : "";
 
   const {
     register,
@@ -43,7 +50,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
     defaultValues: {
       title: "",
       description: "",
-      status: defaultStatus,
+      columnId: defaultColumnId,
       subtasks: [
         { id: crypto.randomUUID(), title: "" },
         { id: crypto.randomUUID(), title: "" },
@@ -57,14 +64,22 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
   });
 
   const onSubmit = (data: AddTaskFormValues) => {
-    onCreate({
+    const subtasks: SubtaskCreateInput[] = (data.subtasks ?? [])
+      .filter((s) => s.title.trim() !== "")
+      .map((s) => ({
+        title: s.title,
+        isCompleted: false,
+      }));
+
+    const payload = {
       title: data.title,
       description: data.description as string,
-      status: data.status,
-      subtasks: (data.subtasks ?? [])
-        .filter((s) => s.title.trim() !== "")
-        .map((s) => ({ title: s.title })),
-    });
+      columnId: data.columnId,
+      subtasks,
+      boardId,
+    };
+
+    onCreate(payload);
   };
 
   return (
@@ -125,17 +140,29 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
         </Button>
       </div>
       <div className="mb-6">
-        <label className="block text-xs font-bold mb-2">Status</label>
+        <label className="block text-xs font-bold mb-2">Column</label>
         <Controller
           control={control}
-          name="status"
-          render={({ field }) => (
-            <Dropdown
-              options={statusOptions}
-              value={field.value}
-              onChange={(val: unknown) => field.onChange(val)}
-            />
-          )}
+          name="columnId"
+          render={({ field }) => {
+            return (
+              <Dropdown
+                options={columns.map((col) => ({
+                  id: col.id,
+                  name: col.name,
+                }))}
+                value={field.value}
+                onChange={(val: unknown) => {
+                  // If Dropdown returns the whole option, extract id; otherwise, pass as is
+                  if (typeof val === "object" && val !== null && "id" in val) {
+                    field.onChange((val as { id: string }).id);
+                  } else {
+                    field.onChange(val as string);
+                  }
+                }}
+              />
+            );
+          }}
         />
       </div>
       <Button type="submit" className="w-full" variant="primary-l">
