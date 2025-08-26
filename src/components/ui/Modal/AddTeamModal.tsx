@@ -1,8 +1,10 @@
 import React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import Button from "../Button/Button";
 import TextField from "../TextField/TextField";
 import { Dropdown } from "../Dropdown/Dropdown";
+import { AddTeamSchema, AddTeamFormValues } from "../../../schemas/forms";
 
 type UserOption = {
   id: string;
@@ -16,19 +18,23 @@ type AddTeamModalProps = {
   multiUser?: boolean; // Allow multiple users to be added
 };
 
-type FormValues = {
-  teamName: string;
-  users: UserOption[]; // Always array for consistency
-};
+const teamResolver = zodResolver(
+  AddTeamSchema
+) as unknown as Resolver<AddTeamFormValues>;
 
-const AddTeamModal: React.FC<AddTeamModalProps> = ({ users, onCreate }) => {
+const AddTeamModal: React.FC<AddTeamModalProps> = ({
+  users,
+  onCreate,
+  multiUser = true,
+}) => {
   const {
     register,
     handleSubmit,
     setValue,
     watch,
     formState: { errors },
-  } = useForm<FormValues>({
+  } = useForm<AddTeamFormValues>({
+    resolver: teamResolver,
     defaultValues: {
       teamName: "",
       users: [],
@@ -46,10 +52,10 @@ const AddTeamModal: React.FC<AddTeamModalProps> = ({ users, onCreate }) => {
         )
       : [];
 
-  const onSubmit = (data: FormValues) => {
+  const onSubmit = (data: AddTeamFormValues) => {
     onCreate({
       teamName: data.teamName,
-      users: filterUserOptions(data.users),
+      users: filterUserOptions(data.users ?? []),
     });
   };
 
@@ -66,7 +72,7 @@ const AddTeamModal: React.FC<AddTeamModalProps> = ({ users, onCreate }) => {
         <label className="block text-xs font-bold mb-2">Team Name</label>
         <TextField
           placeholder="e.g. Product Team"
-          {...register("teamName", { required: "Team name is required" })}
+          {...register("teamName")}
           error={errors.teamName?.message}
         />
       </div>
@@ -83,7 +89,7 @@ const AddTeamModal: React.FC<AddTeamModalProps> = ({ users, onCreate }) => {
             )
           }
           placeholder="Select users"
-          multiSelect={true}
+          multiSelect={multiUser}
         />
         {errors.users && (
           <span className="text-xs text-red-500">{errors.users.message}</span>

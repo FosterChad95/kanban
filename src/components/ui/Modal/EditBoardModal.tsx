@@ -1,8 +1,14 @@
 import React from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, type Resolver } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import Button from "../Button/Button";
 import TextField from "../TextField/TextField";
 import X from "../../../images/X";
+import { BoardSchema, BoardFormValues } from "../../../schemas/forms";
+
+const boardResolver = zodResolver(
+  BoardSchema
+) as unknown as Resolver<BoardFormValues>;
 
 type Board = {
   name: string;
@@ -14,11 +20,6 @@ type EditBoardModalProps = {
   onEdit: (form: { name: string; columns: { name: string }[] }) => void;
 };
 
-type FormValues = {
-  name: string;
-  columns: { id: string; name: string }[];
-};
-
 const EditBoardModal: React.FC<EditBoardModalProps> = ({ board, onEdit }) => {
   const {
     register,
@@ -26,7 +27,8 @@ const EditBoardModal: React.FC<EditBoardModalProps> = ({ board, onEdit }) => {
     control,
     formState: { errors },
     reset,
-  } = useForm<FormValues>({
+  } = useForm<BoardFormValues>({
+    resolver: boardResolver,
     defaultValues: {
       name: board.name,
       columns: board.columns.map((col) => ({
@@ -46,16 +48,16 @@ const EditBoardModal: React.FC<EditBoardModalProps> = ({ board, onEdit }) => {
     });
   }, [board, reset]);
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove } = useFieldArray<BoardFormValues, "columns">({
     control,
     name: "columns",
   });
 
-  const onSubmit = (data: FormValues) => {
+  const onSubmit = (data: BoardFormValues) => {
     const payload = {
       name: data.name,
-      columns: data.columns
-        .filter((col) => col.name.trim() !== "")
+      columns: (data.columns ?? [])
+        .filter((col) => (col.name ?? "").trim() !== "")
         .map((col) => ({ name: col.name })),
     };
     onEdit(payload);

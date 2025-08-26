@@ -1,9 +1,20 @@
 import React from "react";
-import { useForm, Controller, useFieldArray } from "react-hook-form";
+import {
+  useForm,
+  Controller,
+  useFieldArray,
+  type Resolver,
+} from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Dropdown } from "../Dropdown/Dropdown";
 import Button from "../Button/Button";
 import TextField from "../TextField/TextField";
 import X from "../../../images/X";
+import { AddTaskSchema, AddTaskFormValues } from "../../../schemas/forms";
+
+const addTaskResolver = zodResolver(
+  AddTaskSchema
+) as unknown as Resolver<AddTaskFormValues>;
 
 type AddTaskModalProps = {
   statusOptions: string[];
@@ -15,27 +26,24 @@ type AddTaskModalProps = {
   }) => void;
 };
 
-type FormValues = {
-  title: string;
-  description: string;
-  status: string;
-  subtasks: { id: string; title: string }[];
-};
-
 const AddTaskModal: React.FC<AddTaskModalProps> = ({
   statusOptions,
   onCreate,
 }) => {
+  const defaultStatus =
+    statusOptions && statusOptions.length > 0 ? statusOptions[0] : "";
+
   const {
     register,
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<FormValues>({
+  } = useForm<AddTaskFormValues>({
+    resolver: addTaskResolver,
     defaultValues: {
       title: "",
       description: "",
-      status: statusOptions[0] || "",
+      status: defaultStatus,
       subtasks: [
         { id: crypto.randomUUID(), title: "" },
         { id: crypto.randomUUID(), title: "" },
@@ -48,12 +56,12 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
     name: "subtasks",
   });
 
-  const onSubmit = (data: FormValues) => {
+  const onSubmit = (data: AddTaskFormValues) => {
     onCreate({
       title: data.title,
-      description: data.description,
+      description: data.description as string,
       status: data.status,
-      subtasks: data.subtasks
+      subtasks: (data.subtasks ?? [])
         .filter((s) => s.title.trim() !== "")
         .map((s) => ({ title: s.title })),
     });
@@ -70,7 +78,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
         <label className="block text-xs font-bold mb-2">Title</label>
         <TextField
           placeholder="e.g. Take coffee break"
-          {...register("title", { required: "Title is required" })}
+          {...register("title")}
           error={errors.title?.message}
         />
       </div>
@@ -125,7 +133,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
             <Dropdown
               options={statusOptions}
               value={field.value}
-              onChange={field.onChange}
+              onChange={(val: unknown) => field.onChange(val)}
             />
           )}
         />
