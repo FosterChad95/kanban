@@ -32,12 +32,8 @@ const Header: React.FC<HeaderProps> = ({ boards }) => {
   // Find the active board
   const activeBoard = boards.find((b) => b.active) ||
     boards[0] || { name: "Board", columns: [] };
-  // Status options for AddTaskModal (use columns if present, else fallback)
-  const statusOptions = activeBoard.columns?.map((col) => col.name) || [
-    "Todo",
-    "Doing",
-    "Done",
-  ];
+
+  const statusOptions = activeBoard.columns?.map((col) => col.name) || [];
 
   // Handlers for modals
   const handleAddTask = () => {

@@ -31,7 +31,7 @@ const Board: React.FC<BoardProps> = ({ columns }) => {
   return (
     <div className="flex flex-col flex-1 min-h-screen bg-light-gray p-6">
       {columns.length === 0 ? (
-        <div className="flex flex-1 flex-col items-center justify-center rounded-lg shadow">
+        <div className="flex flex-1 flex-col items-center justify-center rounded-lg">
           <p className="mb-6 text-medium-gray font-bold text-lg">
             This board is empty. Create a new column to get started.
           </p>

@@ -10,9 +10,9 @@ interface SettingsModalProps {
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
-  const { data: session } = useSession();
+  const session = useSession();
 
-  const user = session?.user;
+  const user = session.data?.user;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -22,9 +22,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
           <div className="mb-6 w-full text-center">
             <div className="mb-2">
               <span className="font-semibold">Name:</span> {user.name || "N/A"}
-            </div>
-            <div className="mb-2">
-              <span className="font-semibold">Role:</span> {user.role || "N/A"}
             </div>
             {user.email && (
               <div className="mb-2">

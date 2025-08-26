@@ -17,6 +17,7 @@ export default function SignInPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const urlError = searchParams.get("error");
+  const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
   const [authError, setAuthError] = useState<string | null>(null);
 
   const {
@@ -42,7 +43,7 @@ export default function SignInPage() {
       setAuthError(message);
       return;
     }
-    router.push("/");
+    router.push(callbackUrl);
   };
 
   return (
@@ -95,14 +96,14 @@ export default function SignInPage() {
           <Button
             variant="primary-s"
             className="w-full px-4 py-2"
-            onClick={() => signIn("google", { callbackUrl: "/" })}
+            onClick={() => signIn("google", { callbackUrl })}
           >
             Sign in with Google
           </Button>
           <Button
             variant="secondary"
             className="w-full px-4 py-2"
-            onClick={() => signIn("github", { callbackUrl: "/" })}
+            onClick={() => signIn("github", { callbackUrl })}
           >
             Sign in with GitHub
           </Button>
