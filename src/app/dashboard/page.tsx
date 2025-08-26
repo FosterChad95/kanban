@@ -1,6 +1,8 @@
 import React from "react";
 import MainBoardLayout from "../../components/MainBoardLayout";
 import { getAllBoards } from "../../queries/boardQueries";
+import { getCurrentUser } from "../../lib/auth";
+import { redirect } from "next/navigation";
 
 /**
  * Dashboard page (protected by middleware.ts at /dashboard)
@@ -9,6 +11,17 @@ import { getAllBoards } from "../../queries/boardQueries";
  * so this page does not perform any session-based redirects itself.
  */
 export default async function DashboardPage() {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/signin");
+  }
+
+  // If admin, redirect to admin page
+  if (user.role === "ADMIN") {
+    redirect("/admin");
+  }
+
   const dbBoards = await getAllBoards();
 
   const boards = dbBoards.map((board) => ({
@@ -32,6 +45,11 @@ export default async function DashboardPage() {
       })),
     })),
   }));
+
+  // If no boards, redirect to create board modal
+  if (boards.length === 0) {
+    redirect("/dashboard/create-board");
+  }
 
   return <MainBoardLayout boards={boards} />;
 }
