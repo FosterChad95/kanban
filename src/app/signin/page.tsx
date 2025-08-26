@@ -3,13 +3,35 @@
 import { signIn } from "next-auth/react";
 import Button from "@/components/ui/Button/Button";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
 import Link from "next/link";
+import TextField from "@/components/ui/TextField/TextField";
+import { useForm } from "react-hook-form";
+
+type SignInForm = {
+  email: string;
+  password: string;
+};
 
 export default function SignInPage() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
-  const [loading, setLoading] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<SignInForm>({
+    mode: "onSubmit",
+  });
+
+  const onSubmit = async (data: SignInForm) => {
+    await signIn("credentials", {
+      redirect: true,
+      email: data.email,
+      password: data.password,
+      callbackUrl: "/",
+    });
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-[#20212c]">
@@ -24,53 +46,32 @@ export default function SignInPage() {
           </div>
         )}
 
-        {/* Email/password form */}
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-            setLoading(true);
-            const form = e.currentTarget as HTMLFormElement;
-            const formData = new FormData(form);
-            const email = (formData.get("email") as string) || "";
-            const password = (formData.get("password") as string) || "";
-
-            if (!email || !password) {
-              alert("Email and password are required");
-              setLoading(false);
-              return;
-            }
-
-            // Use NextAuth credentials signIn
-            await signIn("credentials", {
-              redirect: true,
-              email,
-              password,
-              callbackUrl: "/",
-            });
-
-            setLoading(false);
-          }}
-          className="w-full mb-4"
-        >
-          <input
-            name="email"
+        <form onSubmit={handleSubmit(onSubmit)} className="w-full mb-4">
+          <TextField
+            className="w-full mb-2"
+            label="Email"
             type="email"
             placeholder="you@example.com"
-            className="w-full mb-2 p-2 rounded border"
+            required
+            error={errors.email?.message}
+            {...register("email", { required: "Email is required" })}
           />
-          <input
-            name="password"
+          <TextField
+            className="w-full mb-4"
+            label="Password"
             type="password"
             placeholder="Password"
-            className="w-full mb-4 p-2 rounded border"
+            required
+            error={errors.password?.message}
+            {...register("password", { required: "Password is required" })}
           />
           <Button
             variant="primary-l"
             className="w-full"
             type="submit"
-            disabled={loading}
+            disabled={isSubmitting}
           >
-            {loading ? "Signing in…" : "Sign in with email"}
+            {isSubmitting ? "Signing in…" : "Sign in with email"}
           </Button>
         </form>
 

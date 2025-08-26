@@ -1,90 +1,129 @@
 "use client";
 
 import Button from "@/components/ui/Button/Button";
+import TextField from "@/components/ui/TextField/TextField";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+
+type CreateAccountForm = {
+  name?: string;
+  email: string;
+  password: string;
+};
 
 export default function CreateAccountPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<CreateAccountForm>({
+    mode: "onSubmit",
+  });
+
+  const onSubmit = async (data: CreateAccountForm) => {
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as {
+          error?: string;
+        };
+
+        if (res.status === 409) {
+          setError("email", {
+            type: "server",
+            message: "Email already in use",
+          });
+        } else if (res.status === 400) {
+          setError("root", {
+            type: "server",
+            message: body?.error || "Email and password are required",
+          });
+        } else {
+          setError("root", {
+            type: "server",
+            message:
+              body?.error || res.statusText || "Unable to create account",
+          });
+        }
+        return;
+      }
+
+      router.push("/signin");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Unable to create account";
+      setError("root", { type: "server", message });
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-[#20212c]">
       <div className="bg-white dark:bg-[#2b2c37] rounded-xl shadow-xl p-8 w-full max-w-md flex flex-col items-center">
         <h1 className="heading-xl mb-6 text-main-purple">Create Account</h1>
 
-        {error && <div className="mb-4 text-red-600 text-center">{error}</div>}
+        {errors.root?.message && (
+          <div className="mb-4 text-red-600 text-center">
+            {errors.root.message}
+          </div>
+        )}
 
-        <form
-          className="w-full mb-4"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            setError(null);
-            setLoading(true);
-
-            const form = e.currentTarget as HTMLFormElement;
-            const formData = new FormData(form);
-            const name = (formData.get("name") as string) || undefined;
-            const email = (formData.get("email") as string) || "";
-            const password = (formData.get("password") as string) || "";
-
-            if (!email || !password) {
-              setError("Email and password are required");
-              setLoading(false);
-              return;
-            }
-
-            try {
-              const res = await fetch("/api/auth/signup", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, email, password }),
-              });
-
-              if (!res.ok) {
-                const body = await res.json().catch(() => ({}));
-                throw new Error(body?.error || res.statusText);
-              }
-
-              // Account created: route to sign-in
-              router.push("/signin");
-            } catch (err: unknown) {
-              const message =
-                err instanceof Error ? err.message : "Unable to create account";
-              setError(message);
-            } finally {
-              setLoading(false);
-            }
-          }}
-        >
-          <input
-            name="name"
+        <form className="w-full mb-4" onSubmit={handleSubmit(onSubmit)}>
+          <TextField
+            className="w-full mb-2"
+            label="Name"
             type="text"
             placeholder="Name (optional)"
-            className="w-full mb-2 p-2 rounded border"
+            {...register("name")}
           />
-          <input
-            name="email"
+          <TextField
+            className="w-full mb-2"
+            label="Email"
             type="email"
             placeholder="you@example.com"
-            className="w-full mb-2 p-2 rounded border"
+            required
+            error={errors.email?.message}
+            {...register("email", {
+              required: "Email is required",
+              pattern: {
+                value:
+                  // Basic email pattern
+                  /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: "Please enter a valid email address",
+              },
+            })}
           />
-          <input
-            name="password"
+          <TextField
+            className="w-full mb-4"
+            label="Password"
             type="password"
             placeholder="Password"
-            className="w-full mb-4 p-2 rounded border"
+            required
+            error={errors.password?.message}
+            {...register("password", {
+              required: "Password is required",
+              minLength: {
+                value: 6,
+                message: "Password must be at least 6 characters",
+              },
+            })}
           />
 
           <Button
             type="submit"
             variant="primary-l"
             className="w-full"
-            disabled={loading}
+            disabled={isSubmitting}
           >
-            {loading ? "Creating account…" : "Create account"}
+            {isSubmitting ? "Creating account…" : "Create account"}
           </Button>
         </form>
 
