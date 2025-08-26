@@ -2,35 +2,28 @@ import React, { useState, useEffect } from "react";
 import Checkbox from "../CheckBox/Checkbox";
 import { Dropdown } from "../Dropdown/Dropdown";
 import Button from "../Button/Button";
-import { useForm, Controller, useFieldArray } from "react-hook-form";
+import {
+  useForm,
+  Controller,
+  useFieldArray,
+  type Resolver,
+} from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ViewTaskSchema, ViewTaskFormValues } from "../../../schemas/forms";
 
-type Subtask = {
-  id: string;
-  title: string;
-  completed: boolean;
-};
+const viewTaskResolver = zodResolver(
+  ViewTaskSchema
+) as unknown as Resolver<ViewTaskFormValues>;
 
 type ViewTaskModalProps = {
   title: string;
   description: string;
-  subtasks: Subtask[];
+  subtasks: ViewTaskFormValues["subtasks"];
   status: string;
   statusOptions: string[];
-  onStatusChange: (status: string) => void;
-  onEdit: (form: {
-    title: string;
-    description: string;
-    status: string;
-    subtasks: Subtask[];
-  }) => void;
+  onStatusChange?: (status: string) => void;
+  onEdit: (form: ViewTaskFormValues) => void;
   onDelete: () => void;
-};
-
-type FormValues = {
-  title: string;
-  description: string;
-  status: string;
-  subtasks: Subtask[];
 };
 
 const ViewTaskModal: React.FC<ViewTaskModalProps> = ({
@@ -46,7 +39,8 @@ const ViewTaskModal: React.FC<ViewTaskModalProps> = ({
   const [isEdit, setIsEdit] = useState(false);
 
   const { register, handleSubmit, control, setValue, watch, reset } =
-    useForm<FormValues>({
+    useForm<ViewTaskFormValues>({
+      resolver: viewTaskResolver,
       defaultValues: {
         title,
         description,
@@ -65,7 +59,7 @@ const ViewTaskModal: React.FC<ViewTaskModalProps> = ({
     });
   }, [title, description, status, subtasks, reset]);
 
-  const { fields } = useFieldArray({
+  const { fields } = useFieldArray<ViewTaskFormValues, "subtasks">({
     control,
     name: "subtasks",
   });
@@ -93,7 +87,7 @@ const ViewTaskModal: React.FC<ViewTaskModalProps> = ({
     onDelete();
   };
 
-  const onSubmit = (data: FormValues) => {
+  const onSubmit = (data: ViewTaskFormValues) => {
     setIsEdit(false);
     onEdit(data);
   };
@@ -183,7 +177,7 @@ const ViewTaskModal: React.FC<ViewTaskModalProps> = ({
             <Dropdown
               options={statusOptions}
               value={field.value}
-              onChange={() => {}}
+              onChange={(val: unknown) => field.onChange(val)}
               disabled={!isEdit}
             />
           )}
