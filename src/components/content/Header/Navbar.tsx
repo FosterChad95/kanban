@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import Logo from "@/images/Logo";
-import Button from "@/components/ui/Button/Button";
-import { useSession } from "next-auth/react";
+import { User } from "@prisma/client";
 
-export default function Navbar() {
-  const { status } = useSession();
-  const isAuth = status === "authenticated";
+interface NavbarProps {
+  user: User | null;
+}
+
+export default function Navbar({ user }: NavbarProps) {
+  const isAuth = !!user;
 
   const sharedButtonStyles =
     "px-5 py-2 rounded bg-main-purple text-white font-semibold shadow hover:bg-purple-700 transition";
@@ -20,16 +22,7 @@ export default function Navbar() {
         </Link>
       </div>
       <div>
-        {status === "loading" ? (
-          <Button
-            variant="primary-s"
-            className={`${sharedButtonStyles} cursor-wait`}
-            disabled
-            aria-busy="true"
-          >
-            Loading...
-          </Button>
-        ) : isAuth ? (
+        {isAuth ? (
           <Link href="/dashboard" className={sharedButtonStyles}>
             Dashboard
           </Link>

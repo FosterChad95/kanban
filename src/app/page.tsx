@@ -3,6 +3,7 @@ import Navbar from "../components/content/Header/Navbar";
 import WelcomeText from "@/images/WelcomeText";
 import Hero from "../components/Hero";
 import TextAndImage from "../components/TextAndImage";
+import { getCurrentUser } from "@/lib/auth";
 
 /**
  * Public landing page.
@@ -10,10 +11,12 @@ import TextAndImage from "../components/TextAndImage";
  * (e.g. /dashboard). This page is a simple marketing/landing page and does not
  * perform any session checks.
  */
-export default function Home() {
+export default async function Home() {
+  const user = await getCurrentUser();
+
   return (
     <main className="min-h-screen flex flex-col relative">
-      <Navbar />
+      <Navbar user={user} />
       <Hero
         title={
           <>

@@ -32,6 +32,13 @@ export const authOptions: AuthOptions = {
           where: {
             email: credentials.email,
           },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            hashedPassword: true,
+            role: true,
+          },
         });
 
         if (!user || !user.hashedPassword) {
@@ -47,7 +54,13 @@ export const authOptions: AuthOptions = {
           return null;
         }
 
-        return user;
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          hashedPassword: user.hashedPassword,
+        };
       },
     }),
   ],
@@ -60,6 +73,30 @@ export const authOptions: AuthOptions = {
     strategy: "jwt",
   },
   secret: process.env.NEXTAUTH_SECRET,
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        const u = user as {
+          id: string;
+          email: string;
+          name?: string;
+          role?: string;
+        };
+        token.id = u.id;
+        token.email = u.email;
+        token.name = u.name;
+        token.role = u.role ?? "USER";
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.sub as string;
+        session.user.role = (token.role as string) ?? "USER";
+      }
+      return session;
+    },
+  },
 };
 
 const handler = NextAuth(authOptions);
