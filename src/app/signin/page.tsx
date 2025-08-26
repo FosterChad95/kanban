@@ -2,10 +2,11 @@
 
 import { signIn } from "next-auth/react";
 import Button from "@/components/ui/Button/Button";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import TextField from "@/components/ui/TextField/TextField";
 import { useForm } from "react-hook-form";
+import { useState } from "react";
 
 type SignInForm = {
   email: string;
@@ -13,8 +14,10 @@ type SignInForm = {
 };
 
 export default function SignInPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const error = searchParams.get("error");
+  const urlError = searchParams.get("error");
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const {
     register,
@@ -25,12 +28,21 @@ export default function SignInPage() {
   });
 
   const onSubmit = async (data: SignInForm) => {
-    await signIn("credentials", {
-      redirect: true,
+    setAuthError(null);
+    const res = await signIn("credentials", {
+      redirect: false,
       email: data.email,
       password: data.password,
-      callbackUrl: "/",
     });
+    if (res?.error) {
+      const message =
+        res.error === "CredentialsSignin" || res.error === "InvalidCredentials"
+          ? "Invalid email or password"
+          : "Sign in failed. Please try again.";
+      setAuthError(message);
+      return;
+    }
+    router.push("/");
   };
 
   return (
@@ -38,11 +50,15 @@ export default function SignInPage() {
       <div className="bg-white dark:bg-[#2b2c37] rounded-xl shadow-xl p-8 w-full max-w-md flex flex-col items-center">
         <h1 className="heading-xl mb-6 text-main-purple">Sign In</h1>
 
-        {error && (
-          <div className="mb-4 text-red-600 text-center">
-            {error === "OAuthAccountNotLinked"
-              ? "Account already exists with a different sign-in method."
-              : "Sign in failed. Please try again."}
+        {(authError || urlError) && (
+          <div className="mb-4 text-red text-center">
+            {authError ??
+              (urlError === "OAuthAccountNotLinked"
+                ? "Account already exists with a different sign-in method."
+                : urlError === "CredentialsSignin" ||
+                  urlError === "InvalidCredentials"
+                ? "Invalid email or password"
+                : "Sign in failed. Please try again.")}
           </div>
         )}
 
