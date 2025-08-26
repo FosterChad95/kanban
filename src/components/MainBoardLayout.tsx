@@ -25,10 +25,11 @@ const MainBoardLayout: React.FC<MainBoardLayoutProps> = ({ boards }) => {
   const [sidebarVisible, setSidebarVisible] = useState(true);
 
   // For Header, convert boards to expected prop shape
-  const headerBoards = boards.map((b) => ({
+  const headerBoards = boards.map((b, idx) => ({
+    id: b.id,
     name: b.name,
-    // Prisma does not provide "active" field, so default to false or handle elsewhere
-    active: false,
+    // mark the first board active by default (adjust as needed)
+    active: idx === 0,
     columns: b.columns.map((col: Column) => ({
       id: col.id,
       name: col.name,
@@ -53,11 +54,16 @@ const MainBoardLayout: React.FC<MainBoardLayoutProps> = ({ boards }) => {
         col: Column & { tasks: Array<Task & { subtasks: Subtask[] }> },
         idx: number
       ) => ({
+        id: col.id,
         name: col.name,
         color: getColor(idx),
         tasks: col.tasks.map((task: Task & { subtasks: Subtask[] }) => ({
+          id: task.id,
           title: task.title,
+          description: task.description,
+          columnId: task.columnId,
           subtasks: task.subtasks.map((sub: Subtask) => ({
+            id: sub.id,
             title: sub.title,
             completed: sub.isCompleted,
           })),
@@ -72,13 +78,7 @@ const MainBoardLayout: React.FC<MainBoardLayoutProps> = ({ boards }) => {
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar below Header */}
         {sidebarVisible && (
-          <Sidebar
-            boards={sidebarBoards}
-            onBoardClick={() => {}}
-            onCreateBoard={() => {}}
-            // Optionally, pass a className to control height/scroll
-            // className="h-full max-h-full overflow-y-auto"
-          />
+          <Sidebar boards={sidebarBoards} onBoardClick={() => {}} />
         )}
         {/* Board */}
         <main className="flex-1 flex flex-col overflow-auto">
