@@ -9,6 +9,7 @@ export default withAuth({
   callbacks: {
     authorized: ({ token }) => {
       // If a token exists, the user is authenticated
+
       return !!token;
     },
   },
