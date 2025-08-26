@@ -5,6 +5,9 @@ import EyeSlashIcon from "@/components/ui/Icon/EyeSlashIcon";
 import SettingsModal from "@/components/ui/Modal/SettingsModal";
 import { motion, AnimatePresence } from "framer-motion";
 import IconBoardIcon from "@/components/ui/Icon/IconBoardIcon";
+import { useRouter } from "next/navigation";
+import { useModal } from "@/providers/ModalProvider";
+import AddBoardModal from "@/components/ui/Modal/AddBoardModal";
 
 interface BoardProps {
   id: string;
@@ -14,17 +17,14 @@ interface BoardProps {
 interface SidebarProps {
   boards?: BoardProps[];
   onBoardClick?: (id: string) => void;
-  onCreateBoard?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({
-  boards = [],
-  onBoardClick,
-  onCreateBoard,
-}) => {
+const Sidebar: React.FC<SidebarProps> = ({ boards = [], onBoardClick }) => {
   const [visible, setVisible] = React.useState(true);
   const [settingsOpen, setSettingsOpen] = React.useState(false);
   const numberBoards = boards.length;
+  const router = useRouter();
+  const { openModal, closeModal } = useModal();
 
   return (
     <>
@@ -58,7 +58,28 @@ const Sidebar: React.FC<SidebarProps> = ({
                   icon={<IconBoardIcon />}
                   variant="primary-l"
                   className="text-left justify-start !font-normal pr-0 pl-8 bg-transparent text-main-purple hover:bg-transparent hover:text-main-purple-light transition-all"
-                  onClick={onCreateBoard}
+                  onClick={() =>
+                    openModal(
+                      <AddBoardModal
+                        onCreate={async (payload: {
+                          name: string;
+                          columns: { name: string }[];
+                        }) => {
+                          try {
+                            await fetch("/api/boards", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify(payload),
+                            });
+                            closeModal();
+                            router.refresh();
+                          } catch (err) {
+                            console.error("Failed to create board:", err);
+                          }
+                        }}
+                      />
+                    )
+                  }
                 >
                   + Create new board
                 </Button>

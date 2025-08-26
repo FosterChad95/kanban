@@ -1,4 +1,6 @@
+"use client";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import Logo from "../../../images/Logo";
 import LogoMobile from "../../../images/LogoMobile";
 import IconBoardIcon from "../../ui/Icon/IconBoardIcon";
@@ -10,6 +12,7 @@ import EditBoardModal from "../../ui/Modal/EditBoardModal";
 import DeleteModal from "../../ui/Modal/DeleteModal";
 
 export interface Board {
+  id?: string;
   name: string;
   active: boolean;
   columns?: { id: string; name: string }[]; // for EditBoardModal
@@ -21,6 +24,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ boards }) => {
   const { openModal, closeModal } = useModal();
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [ellipsisOpen, setEllipsisOpen] = useState(false);
   const ellipsisRef = React.useRef<HTMLDivElement>(null);
@@ -40,9 +44,35 @@ const Header: React.FC<HeaderProps> = ({ boards }) => {
     openModal(
       <AddTaskModal
         statusOptions={statusOptions}
-        onCreate={() => {
-          // No-op for demo
-          closeModal();
+        onCreate={async (payload: {
+          title: string;
+          description: string;
+          status: string;
+          subtasks: { title: string }[];
+        }) => {
+          try {
+            // Resolve columnId from status (column name)
+            const col = activeBoard.columns?.find(
+              (c) => c.name === payload.status
+            );
+            const columnId = col?.id || activeBoard.columns?.[0]?.id;
+            await fetch("/api/tasks", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                title: payload.title,
+                description: payload.description,
+                columnId,
+                subtasks: payload.subtasks,
+              }),
+            });
+            closeModal();
+            // Refresh the page data to reflect the new task
+            router.refresh();
+          } catch (err) {
+            console.error("Failed to create task:", err);
+            // still close modal on error? keep open so user can retry — here we keep it open
+          }
         }}
       />
     );
@@ -59,9 +89,22 @@ const Header: React.FC<HeaderProps> = ({ boards }) => {
             { id: "3", name: "Done" },
           ],
         }}
-        onEdit={() => {
-          // No-op for demo
-          closeModal();
+        onEdit={async (payload: {
+          name: string;
+          columns: { name: string }[];
+        }) => {
+          try {
+            if (!activeBoard.id) throw new Error("Missing board id");
+            await fetch(`/api/boards/${activeBoard.id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+            closeModal();
+            router.refresh();
+          } catch (err) {
+            console.error("Failed to update board:", err);
+          }
         }}
       />
     );
@@ -73,9 +116,17 @@ const Header: React.FC<HeaderProps> = ({ boards }) => {
       <DeleteModal
         type="board"
         name={activeBoard.name}
-        onDelete={() => {
-          // No-op for demo
-          closeModal();
+        onDelete={async () => {
+          try {
+            if (!activeBoard.id) throw new Error("Missing board id");
+            await fetch(`/api/boards/${activeBoard.id}`, {
+              method: "DELETE",
+            });
+            closeModal();
+            router.refresh();
+          } catch (err) {
+            console.error("Failed to delete board:", err);
+          }
         }}
         onCancel={closeModal}
         open={true}

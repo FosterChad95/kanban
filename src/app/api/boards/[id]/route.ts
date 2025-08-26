@@ -1,0 +1,70 @@
+import { NextResponse } from "next/server";
+import {
+  getBoardById,
+  updateBoard,
+  deleteBoard,
+} from "../../../../queries/boardQueries";
+
+/**
+ * GET /api/boards/:id
+ * Returns a single board by id.
+ */
+export async function GET(
+  _req: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const board = await getBoardById(params.id);
+    if (!board) {
+      return NextResponse.json({ error: "Board not found" }, { status: 404 });
+    }
+    return NextResponse.json(board);
+  } catch (err) {
+    console.error(`GET /api/boards/${params.id} error:`, err);
+    return NextResponse.json(
+      { error: "Failed to fetch board" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * PUT /api/boards/:id
+ * Update a board by id. Expects JSON body compatible with your update helper.
+ */
+export async function PUT(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const body = await req.json();
+    const updated = await updateBoard(params.id, body);
+    return NextResponse.json(updated);
+  } catch (err) {
+    console.error(`PUT /api/boards/${params.id} error:`, err);
+    return NextResponse.json(
+      { error: "Failed to update board" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * DELETE /api/boards/:id
+ * Delete a board by id.
+ */
+export async function DELETE(
+  _req: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    await deleteBoard(params.id);
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error(`DELETE /api/boards/${params.id} error:`, err);
+    return NextResponse.json(
+      { error: "Failed to delete board" },
+      { status: 500 }
+    );
+  }
+}

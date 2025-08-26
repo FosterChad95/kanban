@@ -3,6 +3,7 @@ import Task, { TaskType } from "./Task";
 import { cn } from "@/lib/utils";
 
 type ColumnType = {
+  id: string;
   name: string;
   color: "teal" | "purple" | "green";
   tasks: TaskType[];
@@ -10,6 +11,7 @@ type ColumnType = {
 
 type ColumnProps = {
   column: ColumnType;
+  allColumns: ColumnType[];
 };
 
 const colorClasses: Record<ColumnType["color"], string> = {
