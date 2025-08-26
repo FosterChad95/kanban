@@ -44,11 +44,52 @@ async function main() {
   await prisma.task.deleteMany();
   await prisma.column.deleteMany();
   await prisma.board.deleteMany();
+  await prisma.userBoard.deleteMany();
+  await prisma.teamBoard.deleteMany();
+  await prisma.userTeam.deleteMany();
+  await prisma.team.deleteMany();
+  await prisma.account.deleteMany();
+  await prisma.session.deleteMany();
+  await prisma.verificationToken.deleteMany();
 
-  // Seed a demo board with columns, tasks, and subtasks
-  const board = await prisma.board.create({
+  // Create a second user
+  const user2 = await prisma.user.upsert({
+    where: { email: "user2@example.com" },
+    update: {
+      hashedPassword: await bcrypt.hash("user2password", 10),
+      role: "USER",
+      name: "Regular User",
+      emailVerified: new Date(),
+    },
+    create: {
+      email: "user2@example.com",
+      hashedPassword: await bcrypt.hash("user2password", 10),
+      role: "USER",
+      name: "Regular User",
+      emailVerified: new Date(),
+    },
+  });
+
+  // Create a team
+  const team = await prisma.team.create({
     data: {
-      name: "Demo Board",
+      name: "Demo Team",
+    },
+  });
+
+  // Assign both users to the team
+  await prisma.userTeam.createMany({
+    data: [
+      { userId: user.id, teamId: team.id },
+      { userId: user2.id, teamId: team.id },
+    ],
+    skipDuplicates: true,
+  });
+
+  // Create a team board
+  const teamBoard = await prisma.board.create({
+    data: {
+      name: "Team Board",
       columns: {
         create: [
           {
@@ -56,134 +97,11 @@ async function main() {
             tasks: {
               create: [
                 {
-                  title: "Build UI for onboarding flow",
+                  title: "Team Task 1",
                   subtasks: {
                     create: [
                       { title: "Subtask 1", isCompleted: false },
                       { title: "Subtask 2", isCompleted: false },
-                    ],
-                  },
-                },
-                {
-                  title: "Build UI for search",
-                  subtasks: {
-                    create: [
-                      { title: "Subtask 1", isCompleted: false },
-                      { title: "Subtask 2", isCompleted: false },
-                    ],
-                  },
-                },
-                {
-                  title: "Build settings UI",
-                  subtasks: {
-                    create: [
-                      { title: "Subtask 1", isCompleted: false },
-                      { title: "Subtask 2", isCompleted: false },
-                    ],
-                  },
-                },
-                {
-                  title: "QA and test all major user journeys",
-                  subtasks: {
-                    create: [
-                      { title: "Subtask 1", isCompleted: false },
-                      { title: "Subtask 2", isCompleted: false },
-                    ],
-                  },
-                },
-              ],
-            },
-          },
-          {
-            name: "DOING",
-            tasks: {
-              create: [
-                {
-                  title: "Design settings and search pages",
-                  subtasks: {
-                    create: [
-                      { title: "Subtask 1", isCompleted: false },
-                      { title: "Subtask 2", isCompleted: false },
-                    ],
-                  },
-                },
-                {
-                  title: "Add account management endpoints",
-                  subtasks: {
-                    create: [
-                      { title: "Subtask 1", isCompleted: false },
-                      { title: "Subtask 2", isCompleted: false },
-                    ],
-                  },
-                },
-                {
-                  title: "Design onboarding flow",
-                  subtasks: {
-                    create: [
-                      { title: "Subtask 1", isCompleted: false },
-                      { title: "Subtask 2", isCompleted: false },
-                    ],
-                  },
-                },
-                {
-                  title: "Add search endpoints",
-                  subtasks: {
-                    create: [
-                      { title: "Subtask 1", isCompleted: false },
-                      { title: "Subtask 2", isCompleted: false },
-                    ],
-                  },
-                },
-              ],
-            },
-          },
-          {
-            name: "DONE",
-            tasks: {
-              create: [
-                {
-                  title: "Conduct 5 wireframe tests",
-                  subtasks: {
-                    create: [{ title: "Subtask 1", isCompleted: true }],
-                  },
-                },
-                {
-                  title: "Create wireframe prototype",
-                  subtasks: {
-                    create: [{ title: "Subtask 1", isCompleted: true }],
-                  },
-                },
-                {
-                  title: "Review results of usability tests and iterate",
-                  subtasks: {
-                    create: [{ title: "Subtask 1", isCompleted: true }],
-                  },
-                },
-                {
-                  title:
-                    "Create paper prototypes and conduct 10 usability tests with potential customers",
-                  subtasks: {
-                    create: [{ title: "Subtask 1", isCompleted: true }],
-                  },
-                },
-                {
-                  title: "Market discovery",
-                  subtasks: {
-                    create: [{ title: "Subtask 1", isCompleted: true }],
-                  },
-                },
-                {
-                  title: "Competitor analysis",
-                  subtasks: {
-                    create: [{ title: "Subtask 1", isCompleted: true }],
-                  },
-                },
-                {
-                  title: "Research the market",
-                  subtasks: {
-                    create: [
-                      { title: "Subtask 1", isCompleted: true },
-                      { title: "Subtask 2", isCompleted: true },
                     ],
                   },
                 },
@@ -193,16 +111,108 @@ async function main() {
         ],
       },
     },
-    include: {
-      columns: { include: { tasks: { include: { subtasks: true } } } },
+  });
+
+  // Link team board to team
+  await prisma.teamBoard.create({
+    data: {
+      teamId: team.id,
+      boardId: teamBoard.id,
     },
   });
 
-  console.log("Seeded board:", {
-    id: board.id,
-    name: board.name,
-    columns: board.columns.length,
+  // Create a private board for admin user
+  const adminPrivateBoard = await prisma.board.create({
+    data: {
+      name: "Admin Private Board",
+      columns: {
+        create: [
+          {
+            name: "TODO",
+            tasks: {
+              create: [
+                {
+                  title: "Admin Private Task",
+                  subtasks: {
+                    create: [{ title: "Subtask 1", isCompleted: false }],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
   });
+
+  await prisma.userBoard.create({
+    data: {
+      userId: user.id,
+      boardId: adminPrivateBoard.id,
+    },
+  });
+
+  // Create a private board for regular user
+  const user2PrivateBoard = await prisma.board.create({
+    data: {
+      name: "User2 Private Board",
+      columns: {
+        create: [
+          {
+            name: "TODO",
+            tasks: {
+              create: [
+                {
+                  title: "User2 Private Task",
+                  subtasks: {
+                    create: [{ title: "Subtask 1", isCompleted: false }],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  });
+
+  await prisma.userBoard.create({
+    data: {
+      userId: user2.id,
+      boardId: user2PrivateBoard.id,
+    },
+  });
+
+  // Seed Account, Session, VerificationToken for admin user (minimal example)
+  await prisma.account.create({
+    data: {
+      userId: user.id,
+      type: "oauth",
+      provider: "github",
+      providerAccountId: "admin_github_id",
+      access_token: "dummy_access_token",
+    },
+  });
+
+  await prisma.session.create({
+    data: {
+      userId: user.id,
+      sessionToken: "dummy_session_token",
+      expires: new Date(Date.now() + 1000 * 60 * 60 * 24), // 1 day from now
+    },
+  });
+
+  await prisma.verificationToken.create({
+    data: {
+      identifier: user.email,
+      token: "dummy_verification_token",
+      expires: new Date(Date.now() + 1000 * 60 * 60 * 24), // 1 day from now
+    },
+  });
+
+  console.log(
+    "Seeded users, team, team board, private boards, and auth tables."
+  );
 }
 
 main()

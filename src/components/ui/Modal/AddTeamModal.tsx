@@ -6,7 +6,7 @@ import TextField from "../TextField/TextField";
 import { Dropdown } from "../Dropdown/Dropdown";
 import { AddTeamSchema, AddTeamFormValues } from "../../../schemas/forms";
 
-type UserOption = {
+export type UserOption = {
   id: string;
   name: string;
   avatar?: string;

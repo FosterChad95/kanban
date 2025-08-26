@@ -20,7 +20,7 @@ type ViewTaskModalProps = {
   description: string;
   subtasks: ViewTaskFormValues["subtasks"];
   status: string;
-  statusOptions: string[];
+  statusOptions: any[];
   onStatusChange?: (status: string) => void;
   onEdit: (form: ViewTaskFormValues) => void;
   onDelete: () => void;

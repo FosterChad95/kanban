@@ -21,7 +21,7 @@ import DeleteModal from "./DeleteModal";
 import AddTaskModal from "./AddTaskModal";
 import AddBoardModal from "./AddBoardModal";
 import EditBoardModal from "./EditBoardModal";
-import AddTeamModal from "./AddTeamModal";
+import AddTeamModal, { UserOption } from "./AddTeamModal";
 
 const mockSubtasks = [
   { id: "1", title: "Subtask 1", completed: true },
@@ -69,7 +69,21 @@ const AddTaskModalDemo: React.FC = () => {
       onClick={() =>
         openModal(
           <AddTaskModal
-            statusOptions={mockStatusOptions}
+            columns={[
+              {
+                id: "col1",
+                name: "Todo",
+              },
+              {
+                id: "col2",
+                name: "Doing",
+              },
+              {
+                id: "col3",
+                name: "Done",
+              },
+            ]}
+            boardId="demo-board-id"
             onCreate={(data) => {
               alert("Task Created: " + JSON.stringify(data, null, 2));
               closeModal();
@@ -208,10 +222,22 @@ export const DeleteTaskModalStory: StoryObj = {
 
 const AddTeamModalDemo: React.FC = () => {
   const { openModal, closeModal } = useModal();
-  const mockUsers = [
-    "alice@example.com",
-    "bob@example.com",
-    "carol@example.com",
+  const mockUsers: UserOption[] = [
+    {
+      id: "1",
+      name: "Alice",
+      avatar: "https://i.pravatar.cc/150?img=1",
+    },
+    {
+      id: "2",
+      name: "Bob",
+      avatar: "https://i.pravatar.cc/150?img=2",
+    },
+    {
+      id: "3",
+      name: "Carol",
+      avatar: "https://i.pravatar.cc/150?img=3",
+    },
   ];
 
   return (

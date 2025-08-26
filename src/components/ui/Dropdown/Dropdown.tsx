@@ -171,8 +171,28 @@ export const Dropdown = ({
           </span>
         );
       }
-      const label = getOptionLabel(value as DropdownOption);
-      const avatar = getOptionAvatar(value as DropdownOption);
+
+      // If value is a string, try to find the matching option object
+      let displayOption: DropdownOption | undefined = value as DropdownOption;
+      if (typeof value === "string") {
+        displayOption = options.find(
+          (opt) =>
+            (typeof opt === "string" && opt === value) ||
+            (typeof opt === "object" && opt.id === value)
+        );
+      }
+
+      if (!displayOption) {
+        // If no matching option, show placeholder/empty state
+        return (
+          <span className="text-gray-500">
+            {placeholder || "Select option"}
+          </span>
+        );
+      }
+
+      const label = getOptionLabel(displayOption);
+      const avatar = getOptionAvatar(displayOption);
       return (
         <span className="inline-flex items-center">
           {avatar && (

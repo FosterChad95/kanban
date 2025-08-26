@@ -1,0 +1,7 @@
+- [ ] Analyze current DB schema for board, column, and task relationships
+- [ ] Confirm/Add many-to-one board relationship for columns and tasks in schema
+- [ ] Check/Add board association logic in AddTaskModal
+- [ ] Debug and fix AddTaskModal so it successfully adds a task
+- [ ] Test adding a task and confirm board association
+- [ ] Review and update related queries/mutations if needed
+- [ ] Final verification

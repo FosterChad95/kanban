@@ -19,17 +19,19 @@ enum Role {
 }
 
 model User {
-  id             String    @id @default(cuid())
-  email          String    @unique
+  id             String      @id @default(cuid())
+  email          String      @unique
   name           String?
   image          String?
   hashedPassword String?
   emailVerified  DateTime?
-  role           Role      @default(USER)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  role           Role        @default(USER)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
   accounts       Account[]
   sessions       Session[]
+  UserTeam       UserTeam[]
+  UserBoard      UserBoard[]
 }
 
 model Account {
@@ -66,12 +68,54 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+model Team {
+  id        String      @id @default(cuid())
+  name      String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  users     UserTeam[]
+  boards    TeamBoard[]
+}
+
+model UserTeam {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId String
+
+  @@unique([userId, teamId])
+}
+
+model TeamBoard {
+  id      String @id @default(cuid())
+  team    Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId  String
+  board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  boardId String
+
+  @@unique([teamId, boardId])
+}
+
+model UserBoard {
+  id      String @id @default(cuid())
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  String
+  board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  boardId String
+
+  @@unique([userId, boardId])
+}
+
 // Kanban Board Models
 
 model Board {
-  id      String   @id @default(cuid())
+  id      String      @id @default(cuid())
   name    String
   columns Column[]
+  teams   TeamBoard[]
+  users   UserBoard[]
+  Task    Task[]
 }
 
 model Column {
@@ -88,6 +132,8 @@ model Task {
   description String?
   column      Column    @relation(fields: [columnId], references: [id], onDelete: Cascade)
   columnId    String
+  board       Board?    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  boardId     String?
   subtasks    Subtask[]
   // Status is determined by the column the task is in
 }
