@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, Role } from "@prisma/client";
 import prisma from "../lib/prisma";
 
 /**
@@ -26,8 +26,13 @@ export async function getUserById(id: string) {
  * @param data User creation data (Prisma.UserCreateInput)
  */
 export async function createUser(data: Prisma.UserCreateInput) {
+  const payload: Prisma.UserCreateInput = {
+    ...data,
+    role: data.role ?? Role.USER,
+  };
+
   return prisma.user.create({
-    data,
+    data: payload,
     include: { accounts: true, sessions: true },
   });
 }
