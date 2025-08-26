@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "db:seed": "prisma db seed",
+    "db:reset": "prisma migrate reset --force"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
@@ -54,5 +56,8 @@
     "extends": [
       "plugin:storybook/recommended"
     ]
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
   }
 }
