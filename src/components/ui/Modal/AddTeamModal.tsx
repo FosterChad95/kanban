@@ -14,9 +14,12 @@ export type UserOption = {
 };
 
 type AddTeamModalProps = {
-  users: UserOption[]; // Array of user objects
-  onCreate: (form: { teamName: string; users: UserOption[] }) => void;
-  multiUser?: boolean; // Allow multiple users to be added
+  users: UserOption[];
+  onCreate: (form: {
+    teamName: string;
+    users: UserOption[];
+  }) => void | Promise<void>;
+  multiUser?: boolean;
 };
 
 const teamResolver = zodResolver(

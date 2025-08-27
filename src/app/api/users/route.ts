@@ -9,16 +9,23 @@ export async function GET() {
         id: true,
         name: true,
         image: true, // avatar
+        email: true,
       },
       orderBy: { name: "asc" },
     });
 
     // Map to UserOption shape expected by AddTeamModal
     const userOptions = users.map(
-      (user: { id: string; name: string | null; image?: string | null }) => ({
+      (user: {
+        id: string;
+        name: string | null;
+        image?: string | null;
+        email?: string | null;
+      }) => ({
         id: user.id,
         name: user.name || "Unnamed User",
         avatar: user.image || undefined,
+        email: user.email || undefined,
       })
     );
 

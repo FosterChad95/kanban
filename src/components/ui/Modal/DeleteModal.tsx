@@ -5,7 +5,7 @@ import Button from "../Button/Button";
 interface DeleteModalProps {
   type: "task" | "board" | "team" | "user";
   name: string;
-  onDelete: () => void;
+  onDelete: () => void | Promise<void>;
   onCancel: () => void;
   open: boolean;
 }
