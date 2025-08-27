@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import Logo from "../../../images/Logo";
 import LogoMobile from "../../../images/LogoMobile";
 import IconBoardIcon from "../../ui/Icon/IconBoardIcon";
@@ -20,9 +21,10 @@ export interface Board {
 
 interface HeaderProps {
   boards: Board[];
+  adminOnlyLogo?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ boards }) => {
+const Header: React.FC<HeaderProps> = ({ boards, adminOnlyLogo = false }) => {
   const { openModal, closeModal } = useModal();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -126,6 +128,42 @@ const Header: React.FC<HeaderProps> = ({ boards }) => {
     );
     setEllipsisOpen(false);
   };
+
+  if (adminOnlyLogo) {
+    // Logout handler
+    const handleLogout = () => {
+      signOut({ callbackUrl: "/signin" });
+    };
+
+    return (
+      <header className="w-full border-b border-gray-200 md:border-none bg-white px-4 py-2 flex items-center justify-between md:px-8 md:py-0 md:h-24">
+        {/* Desktop: Logo + Logout */}
+        <div className="hidden md:flex items-center border-r-lines-light h-full border-r w-[270px]">
+          <Logo />
+        </div>
+        <div className="hidden md:flex items-center ml-auto">
+          <Button
+            variant="secondary"
+            className="ml-4 px-4 py-2 text-sm font-medium"
+            onClick={handleLogout}
+          >
+            Logout
+          </Button>
+        </div>
+        {/* Mobile: Logo + Logout */}
+        <div className="flex md:hidden items-center w-full justify-between">
+          <LogoMobile />
+          <Button
+            variant="secondary"
+            className="ml-4 px-3 py-1 text-sm font-medium"
+            onClick={handleLogout}
+          >
+            Logout
+          </Button>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="w-full border-b border-gray-200 md:border-none bg-white px-4 py-2 flex items-center justify-between md:px-8 md:py-0 md:h-24">

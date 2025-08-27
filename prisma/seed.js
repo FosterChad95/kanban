@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcryptjs");
 
@@ -52,7 +54,7 @@ async function main() {
   await prisma.session.deleteMany();
   await prisma.verificationToken.deleteMany();
 
-  // Create a second user
+  // Create more users
   const user2 = await prisma.user.upsert({
     where: { email: "user2@example.com" },
     update: {
@@ -70,26 +72,80 @@ async function main() {
     },
   });
 
-  // Create a team
-  const team = await prisma.team.create({
+  const user3 = await prisma.user.upsert({
+    where: { email: "user3@example.com" },
+    update: {
+      hashedPassword: await bcrypt.hash("user3password", 10),
+      role: "USER",
+      name: "User Three",
+      emailVerified: new Date(),
+    },
+    create: {
+      email: "user3@example.com",
+      hashedPassword: await bcrypt.hash("user3password", 10),
+      role: "USER",
+      name: "User Three",
+      emailVerified: new Date(),
+    },
+  });
+
+  const user4 = await prisma.user.upsert({
+    where: { email: "user4@example.com" },
+    update: {
+      hashedPassword: await bcrypt.hash("user4password", 10),
+      role: "USER",
+      name: "User Four",
+      emailVerified: new Date(),
+    },
+    create: {
+      email: "user4@example.com",
+      hashedPassword: await bcrypt.hash("user4password", 10),
+      role: "USER",
+      name: "User Four",
+      emailVerified: new Date(),
+    },
+  });
+
+  // Create more teams
+  const team1 = await prisma.team.create({
     data: {
       name: "Demo Team",
     },
   });
 
-  // Assign both users to the team
+  const team2 = await prisma.team.create({
+    data: {
+      name: "Engineering",
+    },
+  });
+
+  const team3 = await prisma.team.create({
+    data: {
+      name: "Marketing",
+    },
+  });
+
+  // Assign users to teams
   await prisma.userTeam.createMany({
     data: [
-      { userId: user.id, teamId: team.id },
-      { userId: user2.id, teamId: team.id },
+      { userId: user.id, teamId: team1.id },
+      { userId: user2.id, teamId: team1.id },
+      { userId: user3.id, teamId: team1.id },
+
+      { userId: user2.id, teamId: team2.id },
+      { userId: user3.id, teamId: team2.id },
+      { userId: user4.id, teamId: team2.id },
+
+      { userId: user.id, teamId: team3.id },
+      { userId: user4.id, teamId: team3.id },
     ],
     skipDuplicates: true,
   });
 
-  // Create a team board
-  const teamBoard = await prisma.board.create({
+  // Create a team board for each team
+  const team1Board = await prisma.board.create({
     data: {
-      name: "Team Board",
+      name: "Demo Team Board",
       columns: {
         create: [
           {
@@ -97,7 +153,7 @@ async function main() {
             tasks: {
               create: [
                 {
-                  title: "Team Task 1",
+                  title: "Demo Team Task 1",
                   subtasks: {
                     create: [
                       { title: "Subtask 1", isCompleted: false },
@@ -113,11 +169,76 @@ async function main() {
     },
   });
 
-  // Link team board to team
   await prisma.teamBoard.create({
     data: {
-      teamId: team.id,
-      boardId: teamBoard.id,
+      teamId: team1.id,
+      boardId: team1Board.id,
+    },
+  });
+
+  const team2Board = await prisma.board.create({
+    data: {
+      name: "Engineering Board",
+      columns: {
+        create: [
+          {
+            name: "TODO",
+            tasks: {
+              create: [
+                {
+                  title: "Engineering Task 1",
+                  subtasks: {
+                    create: [
+                      { title: "Subtask 1", isCompleted: false },
+                      { title: "Subtask 2", isCompleted: false },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  });
+
+  await prisma.teamBoard.create({
+    data: {
+      teamId: team2.id,
+      boardId: team2Board.id,
+    },
+  });
+
+  const team3Board = await prisma.board.create({
+    data: {
+      name: "Marketing Board",
+      columns: {
+        create: [
+          {
+            name: "TODO",
+            tasks: {
+              create: [
+                {
+                  title: "Marketing Task 1",
+                  subtasks: {
+                    create: [
+                      { title: "Subtask 1", isCompleted: false },
+                      { title: "Subtask 2", isCompleted: false },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  });
+
+  await prisma.teamBoard.create({
+    data: {
+      teamId: team3.id,
+      boardId: team3Board.id,
     },
   });
 
