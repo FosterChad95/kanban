@@ -60,6 +60,16 @@ export const BoardSchema = z.object({
     .default([]),
 });
 
+/* Add User schema (for admin user creation) */
+export const AddUserSchema = z.object({
+  name: z.string().min(1, { message: "Name is required" }),
+  email: z.string().email({ message: "Invalid email address" }),
+  password: z
+    .string()
+    .min(6, { message: "Password must be at least 6 characters" }),
+  role: z.string().min(1, { message: "Role is required" }),
+});
+
 /* Sign up schema */
 export const SignUpSchema = z.object({
   name: z.string().optional().or(z.literal("")),
@@ -103,3 +113,6 @@ export type SignInInput = z.input<typeof SignInSchema>;
 
 export type ViewTaskFormValues = z.infer<typeof ViewTaskSchema>;
 export type ViewTaskInput = z.input<typeof ViewTaskSchema>;
+
+export type AddUserFormValues = z.infer<typeof AddUserSchema>;
+export type AddUserInput = z.input<typeof AddUserSchema>;

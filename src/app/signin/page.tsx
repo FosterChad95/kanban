@@ -55,7 +55,7 @@ export default function SignInPage() {
           <div className="mb-4 text-red text-center">
             {authError ??
               (urlError === "OAuthAccountNotLinked"
-                ? "Account already exists with a different sign-in method."
+                ? "This email is already associated with a Google or GitHub account. Please sign in using the provider you originally used."
                 : urlError === "CredentialsSignin" ||
                   urlError === "InvalidCredentials"
                 ? "Invalid email or password"
