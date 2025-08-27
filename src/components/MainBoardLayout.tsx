@@ -74,18 +74,21 @@ const MainBoardLayout: React.FC<MainBoardLayoutProps> = ({ boards }) => {
   return (
     <div className="flex flex-col min-h-screen bg-light-gray">
       {/* Header */}
-      <Header boards={headerBoards} />
+      <Header boards={headerBoards} sidebarVisible={sidebarVisible} />
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar below Header */}
-        {sidebarVisible && (
-          <Sidebar boards={sidebarBoards} onBoardClick={() => {}} />
-        )}
+        <Sidebar
+          boards={sidebarBoards}
+          onBoardClick={() => {}}
+          visible={sidebarVisible}
+          onHideSidebar={() => setSidebarVisible(false)}
+        />
         {/* Board */}
         <main className="flex-1 flex flex-col overflow-auto">
           <Board columns={columns} />
         </main>
       </div>
-      {/* Floating show/hide sidebar button (optional, for demo) */}
+      {/* Floating show/hide sidebar button */}
       {!sidebarVisible && (
         <button
           aria-label="Show Sidebar"
@@ -93,7 +96,6 @@ const MainBoardLayout: React.FC<MainBoardLayoutProps> = ({ boards }) => {
           className="fixed left-0 bottom-0 z-30 -translate-y-1/2 bg-main-purple hover:bg-main-purple-light transition-colors p-2 rounded-r-lg shadow-lg flex items-center justify-center"
           style={{ width: 40, height: 40 }}
         >
-          {/* EyeSlashIcon or similar */}
           <span className="text-white">{"<"}</span>
         </button>
       )}

@@ -4,6 +4,7 @@ import WelcomeText from "@/images/WelcomeText";
 import Hero from "../components/Hero";
 import TextAndImage from "../components/TextAndImage";
 import { getCurrentUser } from "@/lib/auth";
+import Footer from "../components/content/Footer/Footer";
 
 /**
  * Public landing page.
@@ -58,6 +59,7 @@ export default async function Home() {
         imageAlt="Team Collaboration"
         imageLeft
       />
+      <Footer />
     </main>
   );
 }
