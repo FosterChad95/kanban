@@ -3,7 +3,7 @@ import Modal from "./Modal";
 import Button from "../Button/Button";
 
 interface DeleteModalProps {
-  type: "task" | "board";
+  type: "task" | "board" | "team";
   name: string;
   onDelete: () => void;
   onCancel: () => void;
@@ -17,18 +17,25 @@ const DeleteModal: React.FC<DeleteModalProps> = ({
   onCancel,
   open,
 }) => {
-  const isBoard = type === "board";
+  let title = "";
+  let message = "";
+
+  if (type === "board") {
+    title = "Delete this board?";
+    message = `Are you sure you want to delete the ‘${name}’ board? This action will remove all columns and tasks and cannot be reversed.`;
+  } else if (type === "task") {
+    title = "Delete this task?";
+    message = `Are you sure you want to delete the ‘${name}’ task and its subtasks? This action cannot be reversed.`;
+  } else if (type === "team") {
+    title = "Delete this team?";
+    message = `Are you sure you want to delete the ‘${name}’ team? This action will remove all associated boards and cannot be reversed.`;
+  }
+
   return (
     <Modal isOpen={open} onClose={onCancel}>
       <div className="p-6 w-[350px] sm:w-[400px]">
-        <h2 className="text-red text-lg font-bold mb-4">
-          Delete this {isBoard ? "board" : "task"}?
-        </h2>
-        <p className="text-sm text-gray-500 mb-6">
-          {isBoard
-            ? `Are you sure you want to delete the ‘${name}’ board? This action will remove all columns and tasks and cannot be reversed.`
-            : `Are you sure you want to delete the ‘${name}’ task and its subtasks? This action cannot be reversed.`}
-        </p>
+        <h2 className="text-red text-lg font-bold mb-4">{title}</h2>
+        <p className="text-sm text-gray-500 mb-6">{message}</p>
         <div className="flex gap-4">
           <Button
             className="flex-1"
