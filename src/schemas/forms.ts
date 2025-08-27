@@ -70,6 +70,17 @@ export const AddUserSchema = z.object({
   role: z.string().min(1, { message: "Role is required" }),
 });
 
+/* Edit User schema (for admin user update) */
+export const EditUserSchema = z.object({
+  name: z.string().min(1, { message: "Name is required" }),
+  email: z.string().email({ message: "Invalid email address" }),
+  avatar: z
+    .string()
+    .url({ message: "Invalid avatar URL" })
+    .optional()
+    .or(z.literal("")),
+});
+
 /* Sign up schema */
 export const SignUpSchema = z.object({
   name: z.string().optional().or(z.literal("")),
@@ -116,3 +127,6 @@ export type ViewTaskInput = z.input<typeof ViewTaskSchema>;
 
 export type AddUserFormValues = z.infer<typeof AddUserSchema>;
 export type AddUserInput = z.input<typeof AddUserSchema>;
+
+export type EditUserFormValues = z.infer<typeof EditUserSchema>;
+export type EditUserInput = z.input<typeof EditUserSchema>;

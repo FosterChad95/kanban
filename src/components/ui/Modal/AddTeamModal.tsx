@@ -9,6 +9,7 @@ import { AddTeamSchema, AddTeamFormValues } from "../../../schemas/forms";
 export type UserOption = {
   id: string;
   name: string;
+  email?: string;
   avatar?: string;
 };
 

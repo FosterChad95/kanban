@@ -2,9 +2,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
-import Logo from "../../../images/Logo";
 import LogoMobile from "../../../images/LogoMobile";
-import { motion, AnimatePresence } from "framer-motion";
 import IconBoardIcon from "../../ui/Icon/IconBoardIcon";
 import ThemeToggle from "../../ui/ThemeToggle/ThemeToggle";
 import Button from "../../ui/Button/Button";
@@ -23,14 +21,9 @@ export interface Board {
 interface HeaderProps {
   boards: Board[];
   adminOnlyLogo?: boolean;
-  sidebarVisible?: boolean; // NEW: controls logo fade-in
 }
 
-const Header: React.FC<HeaderProps> = ({
-  boards,
-  adminOnlyLogo = false,
-  sidebarVisible,
-}) => {
+const Header: React.FC<HeaderProps> = ({ boards, adminOnlyLogo = false }) => {
   const { openModal, closeModal } = useModal();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -144,9 +137,6 @@ const Header: React.FC<HeaderProps> = ({
     return (
       <header className="w-full border-b border-gray-200 md:border-none bg-white px-4 py-2 flex items-center justify-between md:px-8 md:py-0 md:h-24">
         {/* Desktop: Logo + Logout */}
-        <div className="hidden md:flex items-center border-r-lines-light h-full border-r w-[270px]">
-          <Logo />
-        </div>
         <div className="hidden md:flex items-center ml-auto">
           <Button
             variant="secondary"
@@ -173,24 +163,6 @@ const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="w-full border-b border-gray-200 md:border-none bg-white px-4 py-2 flex items-center justify-between md:px-8 md:py-0 md:h-24">
-      {/* Desktop: Only Logo */}
-      <div className="hidden md:flex items-center border-r-lines-light h-full border-r w-[270px]">
-        <AnimatePresence>
-          {!sidebarVisible && (
-            <motion.div
-              key="header-logo"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.4 }}
-              className="flex items-center w-full h-full"
-            >
-              <Logo />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
       <div className="md:border-b md:border-gray-200 md:h-full md:flex-grow flex md:align-middle md:justify-end w-full justify-between">
         {/* Mobile: LogoMobile + Board Name Dropdown */}
         <div className="flex items-center gap-2 md:hidden">

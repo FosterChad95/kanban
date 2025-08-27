@@ -3,7 +3,7 @@ import Modal from "./Modal";
 import Button from "../Button/Button";
 
 interface DeleteModalProps {
-  type: "task" | "board" | "team";
+  type: "task" | "board" | "team" | "user";
   name: string;
   onDelete: () => void;
   onCancel: () => void;
@@ -29,6 +29,9 @@ const DeleteModal: React.FC<DeleteModalProps> = ({
   } else if (type === "team") {
     title = "Delete this team?";
     message = `Are you sure you want to delete the ‘${name}’ team? This action will remove all associated boards and cannot be reversed.`;
+  } else if (type === "user") {
+    title = "Delete this user?";
+    message = `Are you sure you want to delete the user ‘${name}’? This action cannot be reversed.`;
   }
 
   return (
