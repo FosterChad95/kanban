@@ -8,6 +8,7 @@ import IconBoardIcon from "@/components/ui/Icon/IconBoardIcon";
 import { useRouter } from "next/navigation";
 import { useModal } from "@/providers/ModalProvider";
 import AddBoardModal from "@/components/ui/Modal/AddBoardModal";
+import Logo from "@/images/Logo";
 
 interface BoardProps {
   id: string;
@@ -17,14 +18,38 @@ interface BoardProps {
 interface SidebarProps {
   boards?: BoardProps[];
   onBoardClick?: (id: string) => void;
+  visible: boolean;
+  onHideSidebar: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ boards = [], onBoardClick }) => {
-  const [visible, setVisible] = React.useState(true);
+const Sidebar: React.FC<SidebarProps> = ({
+  boards = [],
+  onBoardClick,
+  visible,
+  onHideSidebar,
+}) => {
   const [settingsOpen, setSettingsOpen] = React.useState(false);
+  const [logoVisible, setLogoVisible] = React.useState(true);
   const numberBoards = boards.length;
   const router = useRouter();
   const { openModal, closeModal } = useModal();
+
+  // Handle fade-out before hiding sidebar
+  React.useEffect(() => {
+    if (!visible) {
+      setLogoVisible(false);
+    } else {
+      setLogoVisible(true);
+    }
+  }, [visible]);
+
+  // When logo fade-out completes, trigger sidebar hide
+  const handleHideSidebar = () => {
+    setLogoVisible(false);
+    setTimeout(() => {
+      onHideSidebar();
+    }, 300); // match logo fade duration
+  };
 
   return (
     <>
@@ -38,6 +63,15 @@ const Sidebar: React.FC<SidebarProps> = ({ boards = [], onBoardClick }) => {
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className="w-[270px] bg-white border-r border-r-[#E4EBFA] flex flex-col py-4 h-full pr-[24px] min-h-screen shadow-lg overflow-y-auto"
           >
+            {/* Sidebar Logo with fade-out */}
+            <motion.div
+              initial={{ opacity: 1 }}
+              animate={{ opacity: logoVisible ? 1 : 0 }}
+              transition={{ duration: 0.3 }}
+              className="pl-8 pb-2"
+            >
+              <Logo />
+            </motion.div>
             <div className="flex-1">
               <h2 className="py-4 pl-8 text-medium-gray tracking-[2.4px] uppercase font-bold text-xs">
                 All Boards ({numberBoards})
@@ -97,7 +131,7 @@ const Sidebar: React.FC<SidebarProps> = ({ boards = [], onBoardClick }) => {
               </Button>
               <button
                 className="flex items-center gap-2 text-medium-gray hover:text-main-purple transition-colors px-4 py-2 rounded focus:outline-none"
-                onClick={() => setVisible(false)}
+                onClick={handleHideSidebar}
               >
                 <EyeSlashIcon width={20} height={20} />
                 <span className="font-semibold text-base">Hide Sidebar</span>
@@ -110,21 +144,8 @@ const Sidebar: React.FC<SidebarProps> = ({ boards = [], onBoardClick }) => {
           </motion.aside>
         )}
       </AnimatePresence>
-      {/* Floating show sidebar button */}
-      {!visible && (
-        <button
-          aria-label="Show Sidebar"
-          onClick={() => setVisible(true)}
-          className="fixed left-0 bottom-0 z-30 -translate-y-1/2 bg-main-purple hover:bg-main-purple-light transition-colors p-2 rounded-r-lg shadow-lg flex items-center justify-center"
-          style={{ width: 40, height: 40 }}
-        >
-          <EyeSlashIcon
-            width={20}
-            height={20}
-            style={{ transform: "rotate(180deg)", color: "white" }}
-          />
-        </button>
-      )}
+      {/* Floating show sidebar button is now handled by parent */}
+      {/* (Removed from Sidebar) */}
     </>
   );
 };
