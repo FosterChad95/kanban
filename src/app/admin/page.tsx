@@ -5,6 +5,7 @@ import AddTeamModal, { UserOption } from "@/components/ui/Modal/AddTeamModal";
 import EditTeamModal from "@/components/ui/Modal/EditTeamModal";
 import DeleteModal from "@/components/ui/Modal/DeleteModal";
 import AddUserModal from "@/components/ui/Modal/AddUserModal";
+import EditUserModal from "@/components/ui/Modal/EditUserModal";
 
 type Team = {
   id: string;
@@ -41,6 +42,18 @@ export default function AdminPage() {
   const [addingUser, setAddingUser] = useState(false);
   const [addUserError, setAddUserError] = useState<string | null>(null);
 
+  // Edit user modal state
+  const [showEditUser, setShowEditUser] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserOption | null>(null);
+  const [editingUserLoading, setEditingUserLoading] = useState(false);
+  const [editUserError, setEditUserError] = useState<string | null>(null);
+
+  // Delete user modal state
+  const [showDeleteUser, setShowDeleteUser] = useState(false);
+  const [deletingUser, setDeletingUser] = useState<UserOption | null>(null);
+  const [deletingUserLoading, setDeletingUserLoading] = useState(false);
+  const [deleteUserError, setDeleteUserError] = useState<string | null>(null);
+
   // Fetch teams
   useEffect(() => {
     async function fetchTeams() {
@@ -65,24 +78,24 @@ export default function AdminPage() {
     fetchTeams();
   }, []);
 
-  // Fetch users for AddTeamModal
-  useEffect(() => {
-    async function fetchUsers() {
-      try {
-        setUsersError(null);
-        const res = await fetch("/api/users");
-        if (res.ok) {
-          const data = await res.json();
-          setUsers(data);
-        } else {
-          setUsersError("Failed to fetch users.");
-        }
-      } catch (err) {
-        setUsersError("An error occurred while fetching users.");
-        // eslint-disable-next-line no-console
-        console.error("Fetch users error:", err);
+  // Fetch users for AddTeamModal and Users list
+  async function fetchUsers() {
+    try {
+      setUsersError(null);
+      const res = await fetch("/api/users");
+      if (res.ok) {
+        const data = await res.json();
+        setUsers(data);
+      } else {
+        setUsersError("Failed to fetch users.");
       }
+    } catch (err) {
+      setUsersError("An error occurred while fetching users.");
+      // eslint-disable-next-line no-console
+      console.error("Fetch users error:", err);
     }
+  }
+  useEffect(() => {
     fetchUsers();
   }, []);
 
@@ -362,20 +375,47 @@ export default function AdminPage() {
               {users.map((user) => (
                 <li
                   key={user.id}
-                  className="py-2 border-b border-gray-100 dark:border-gray-800 flex items-center gap-4"
+                  className="py-2 border-b border-gray-100 dark:border-gray-800 flex items-center gap-4 justify-between"
                 >
-                  {user.avatar ? (
-                    <img
-                      src={user.avatar}
-                      alt={user.name}
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 font-bold">
-                      {user.name.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                  <span className="font-medium">{user.name}</span>
+                  <div className="flex items-center gap-4">
+                    {user.avatar ? (
+                      <img
+                        src={user.avatar}
+                        alt={user.name}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 font-bold">
+                        {user.name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <span className="font-medium">{user.name}</span>
+                    {user.email && (
+                      <span className="text-gray-500 dark:text-gray-400 text-sm">
+                        {user.email}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      className="text-blue-600 hover:underline"
+                      onClick={() => {
+                        setEditingUser(user);
+                        setShowEditUser(true);
+                      }}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="text-red-600 hover:underline"
+                      onClick={() => {
+                        setDeletingUser(user);
+                        setShowDeleteUser(true);
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -395,8 +435,8 @@ export default function AdminPage() {
                 body: JSON.stringify(form),
               });
               if (res.ok) {
-                // Optionally refresh users list here
                 setShowAddUser(false);
+                fetchUsers();
               } else {
                 setAddUserError("Failed to create user.");
               }
@@ -411,6 +451,118 @@ export default function AdminPage() {
           loading={addingUser}
           error={addUserError}
         />
+
+        {/* Edit User Modal */}
+        {editingUser && (
+          <EditUserModal
+            initialName={editingUser.name}
+            initialEmail={editingUser.email || ""}
+            initialAvatar={editingUser.avatar || ""}
+            isOpen={showEditUser}
+            onClose={() => {
+              setShowEditUser(false);
+              setEditingUser(null);
+              setEditUserError(null);
+            }}
+            onEdit={async (form) => {
+              if (!editingUser) return;
+              setEditingUserLoading(true);
+              setEditUserError(null);
+              try {
+                const res = await fetch(`/api/users/${editingUser.id}`, {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(form),
+                });
+                if (res.ok) {
+                  setShowEditUser(false);
+                  setEditingUser(null);
+                  fetchUsers();
+                } else {
+                  setEditUserError("Failed to update user.");
+                }
+              } catch (err) {
+                setEditUserError("An error occurred while updating the user.");
+                // eslint-disable-next-line no-console
+                console.error("Edit user error:", err);
+              } finally {
+                setEditingUserLoading(false);
+              }
+            }}
+            loading={editingUserLoading}
+            error={editUserError}
+          />
+        )}
+        {editUserError && showEditUser && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+            <div className="absolute left-0 right-0 top-0 mt-2 flex justify-center z-20 pointer-events-auto">
+              <span className="bg-red-100 text-red-700 px-4 py-2 rounded shadow">
+                {editUserError}
+              </span>
+            </div>
+          </div>
+        )}
+        {editingUserLoading && showEditUser && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+            <div className="absolute inset-0 flex items-center justify-center bg-white/60 dark:bg-gray-900/60 z-10 pointer-events-auto">
+              <span className="text-main-purple font-semibold">Saving...</span>
+            </div>
+          </div>
+        )}
+
+        {/* Delete User Modal */}
+        {showDeleteUser && deletingUser && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+            <DeleteModal
+              type="user"
+              name={deletingUser.name}
+              open={showDeleteUser}
+              onDelete={async () => {
+                setDeletingUserLoading(true);
+                setDeleteUserError(null);
+                try {
+                  const res = await fetch(`/api/users/${deletingUser.id}`, {
+                    method: "DELETE",
+                  });
+                  if (res.ok) {
+                    setShowDeleteUser(false);
+                    setDeletingUser(null);
+                    fetchUsers();
+                  } else {
+                    setDeleteUserError("Failed to delete user.");
+                  }
+                } catch (err) {
+                  setDeleteUserError(
+                    "An error occurred while deleting the user."
+                  );
+                  // eslint-disable-next-line no-console
+                  console.error("Delete user error:", err);
+                } finally {
+                  setDeletingUserLoading(false);
+                }
+              }}
+              onCancel={() => {
+                setShowDeleteUser(false);
+                setDeletingUser(null);
+                setDeleteUserError(null);
+              }}
+            />
+            {deleteUserError && (
+              <div className="absolute left-0 right-0 top-0 mt-2 flex justify-center z-20">
+                <span className="bg-red-100 text-red-700 px-4 py-2 rounded shadow">
+                  {deleteUserError}
+                </span>
+              </div>
+            )}
+            {deletingUserLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/60 dark:bg-gray-900/60 z-10">
+                <span className="text-main-purple font-semibold">
+                  Deleting...
+                </span>
+              </div>
+            )}
+          </div>
+        )}
       </section>
     </AdminLayout>
   );
