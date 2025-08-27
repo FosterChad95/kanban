@@ -348,14 +348,38 @@ export default function AdminPage() {
             + Add User
           </button>
         </div>
-        {/* Users list placeholder */}
+        {/* Users list */}
         <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-6 bg-white dark:bg-gray-900 shadow">
           {usersError && (
             <p className="text-center text-red-500 mb-2">{usersError}</p>
           )}
-          <p className="text-center text-gray-500 dark:text-gray-400">
-            Users management UI coming soon.
-          </p>
+          {users.length === 0 ? (
+            <p className="text-center text-gray-500 dark:text-gray-400">
+              No users found.
+            </p>
+          ) : (
+            <ul>
+              {users.map((user) => (
+                <li
+                  key={user.id}
+                  className="py-2 border-b border-gray-100 dark:border-gray-800 flex items-center gap-4"
+                >
+                  {user.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt={user.name}
+                      className="w-8 h-8 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 font-bold">
+                      {user.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <span className="font-medium">{user.name}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
         {/* Add User Modal */}
         <AddUserModal
