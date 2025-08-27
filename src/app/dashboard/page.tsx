@@ -24,8 +24,6 @@ export default async function DashboardPage() {
 
   const dbBoards = await getBoardsForUser(user.id);
 
-  console.log(dbBoards);
-
   const boards = dbBoards.map((board) => ({
     id: board.id,
     name: board.name,

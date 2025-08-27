@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import LogoMobile from "../../../images/LogoMobile";
+import Logo from "../../../images/Logo";
 import IconBoardIcon from "../../ui/Icon/IconBoardIcon";
 import ThemeToggle from "../../ui/ThemeToggle/ThemeToggle";
 import Button from "../../ui/Button/Button";
@@ -135,8 +136,11 @@ const Header: React.FC<HeaderProps> = ({ boards, adminOnlyLogo = false }) => {
     };
 
     return (
-      <header className="w-full border-b border-gray-200 md:border-none bg-white px-4 py-2 flex items-center justify-between md:px-8 md:py-0 md:h-24">
+      <header className="w-full border-b border-gray-200  bg-white px-4 py-2 flex items-center justify-between md:px-8 md:py-0 md:h-24">
         {/* Desktop: Logo + Logout */}
+        <div className="hidden md:flex items-center">
+          <Logo />
+        </div>
         <div className="hidden md:flex items-center ml-auto">
           <Button
             variant="secondary"
@@ -162,8 +166,8 @@ const Header: React.FC<HeaderProps> = ({ boards, adminOnlyLogo = false }) => {
   }
 
   return (
-    <header className="w-full border-b border-gray-200 md:border-none bg-white px-4 py-2 flex items-center justify-between md:px-8 md:py-0 md:h-24">
-      <div className="md:border-b md:border-gray-200 md:h-full md:flex-grow flex md:align-middle md:justify-end w-full justify-between">
+    <header className="w-full border-b border-gray-200 bg-white px-4 py-2 flex items-center justify-between md:px-8 md:py-0 md:h-24">
+      <div className="md:h-full md:flex-grow flex md:align-middle md:justify-end w-full justify-between">
         {/* Mobile: LogoMobile + Board Name Dropdown */}
         <div className="flex items-center gap-2 md:hidden">
           <LogoMobile />

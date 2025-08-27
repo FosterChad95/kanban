@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Button from "../Button/Button";
@@ -35,7 +35,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
     register,
     handleSubmit,
     formState: { errors },
-    setValue,
+    reset,
   } = useForm<EditUserFormValues>({
     resolver: userResolver,
     defaultValues: {
@@ -45,11 +45,24 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
     },
   });
 
+  // Reset form values whenever the modal opens or the initial props change.
+  // This ensures the email (and other fields) are populated when clicking "Edit".
+  useEffect(() => {
+    if (isOpen) {
+      reset({
+        name: initialName,
+        email: initialEmail,
+        avatar: initialAvatar,
+      });
+    }
+  }, [isOpen, initialName, initialEmail, initialAvatar, reset]);
+
   const onSubmit = (data: EditUserFormValues) => {
+    // Don't allow editing the avatar — preserve the existing avatar value.
     onEdit({
       name: data.name,
       email: data.email,
-      avatar: data.avatar,
+      avatar: initialAvatar || undefined,
     });
   };
 
@@ -79,14 +92,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
             error={errors.email?.message}
           />
         </div>
-        <div className="mb-4">
-          <label className="block text-xs font-bold mb-2">Avatar URL</label>
-          <TextField
-            placeholder="e.g. https://example.com/avatar.jpg"
-            {...register("avatar")}
-            error={errors.avatar?.message}
-          />
-        </div>
+
         {error && <div className="mb-4 text-center text-red-500">{error}</div>}
         <Button
           type="submit"
