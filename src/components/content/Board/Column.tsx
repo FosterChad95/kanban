@@ -7,29 +7,26 @@ type ColumnProps = {
   column: {
     id: string;
     name: string;
-    color: "teal" | "purple" | "green";
+    color: string;
     tasks: TaskType[];
   };
   allColumns: {
     id: string;
     name: string;
-    color: "teal" | "purple" | "green";
+    color: string;
     tasks: TaskType[];
   }[];
 };
 
-const colorClasses: Record<ColumnProps["column"]["color"], string> = {
-  teal: "bg-[#49c4e5]",
-  purple: "bg-[#8471F2]",
-  green: "bg-[#67e2ae]",
-};
+/* Removed colorClasses, will use color directly */
 
 const Column: React.FC<ColumnProps> = ({ column, allColumns }) => {
   return (
     <div className="min-w-[280px] w-72 flex-shrink-0">
       <div className="flex items-center gap-2 mb-6">
         <span
-          className={cn(`h-3 w-3 rounded-full`, colorClasses[column.color])}
+          className={cn("h-3 w-3 rounded-full")}
+          style={{ backgroundColor: column.color }}
         ></span>
         <span className="uppercase text-xs tracking-widest text-gray-500 font-semibold">
           {column.name} ({column.tasks.length})

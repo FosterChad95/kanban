@@ -26,7 +26,6 @@ const Task: React.FC<TaskProps> = ({ task }) => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(form),
           });
-          window.location.reload();
         }}
         onDelete={async () => {
           if (!task.id) {
@@ -36,7 +35,6 @@ const Task: React.FC<TaskProps> = ({ task }) => {
           await fetch(`/api/tasks/${task.id}`, {
             method: "DELETE",
           });
-          window.location.reload();
         }}
       />
     );

@@ -333,7 +333,9 @@ export default function TeamsSection() {
       {teamsState.editingTeam && (
         <EditTeamModal
           initialTeamName={teamsState.editingTeam.name}
-          initialUsers={teamsState.editingTeam.users || []}
+          initialUsers={(teamsState.editingTeam.users || [])
+            .map((u) => users.find((user) => user.id === u.id))
+            .filter((u): u is UserOption => u !== undefined)}
           users={users}
           onEdit={handleEditTeam}
           multiUser={true}

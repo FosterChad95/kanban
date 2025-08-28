@@ -6,10 +6,12 @@ import Button from "../../ui/Button/Button";
 import { useModal } from "../../../providers/ModalProvider";
 import EditBoardModal from "../../ui/Modal/EditBoardModal";
 
+import randomColor from "randomcolor";
+
 type ColumnType = {
   id: string;
   name: string;
-  color: "teal" | "purple" | "green";
+  color: string;
   tasks: any[];
 };
 
@@ -55,9 +57,26 @@ const Board: React.FC<BoardProps> = ({ columns, onEditBoard }) => {
         </div>
       ) : (
         <div className="flex gap-6 h-full overflow-x-auto">
-          {columns.map((column: ColumnType) => (
-            <Column key={column.id} column={column} allColumns={columns} />
-          ))}
+          {columns.map((column: ColumnType, idx: number) => {
+            // Assign a random color if not present
+            const color =
+              column.color && /^#([0-9A-F]{3}){1,2}$/i.test(column.color)
+                ? column.color
+                : randomColor({ luminosity: "light", seed: column.id || idx });
+            return (
+              <Column
+                key={column.id}
+                column={{ ...column, color }}
+                allColumns={columns.map((c, i) => ({
+                  ...c,
+                  color:
+                    c.color && /^#([0-9A-F]{3}){1,2}$/i.test(c.color)
+                      ? c.color
+                      : randomColor({ luminosity: "light", seed: c.id || i }),
+                }))}
+              />
+            );
+          })}
           <Button
             variant="secondary"
             className="min-w-[280px] w-72 flex-shrink-0"
