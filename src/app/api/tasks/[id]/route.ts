@@ -4,6 +4,7 @@ import {
   updateTask,
   deleteTask,
 } from "../../../../queries/taskQueries";
+import type { Task, TaskUpdatePayload } from "@/util/types";
 
 /**
  * GET /api/tasks/:id
@@ -12,9 +13,9 @@ import {
 export async function GET(
   _req: Request,
   { params }: { params: { id: string } }
-) {
+): Promise<NextResponse> {
   try {
-    const task = await getTaskById(params.id);
+    const task: Task | null = await getTaskById(params.id);
     if (!task) {
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
     }
@@ -30,20 +31,20 @@ export async function GET(
 
 /**
  * PUT /api/tasks/:id
- * Update a task by id. Expects JSON body compatible with your updateTask helper.
+ * Update a task by id. Expects JSON body compatible with TaskUpdatePayload.
  */
 export async function PUT(
   req: Request,
   { params }: { params: { id: string } }
-) {
+): Promise<NextResponse> {
   try {
-    const body = await req.json();
+    const body: TaskUpdatePayload = await req.json();
     // Extract subtasks and map to updateMany structure
     const { subtasks, ...rest } = body;
-    let data: any = { ...rest };
+    const data: any = { ...rest };
     if (Array.isArray(subtasks)) {
       data.subtasks = {
-        updateMany: subtasks.map((s: any) => ({
+        updateMany: subtasks.map((s) => ({
           where: { id: s.id },
           data: {
             title: s.title,
@@ -52,7 +53,7 @@ export async function PUT(
         })),
       };
     }
-    const updated = await updateTask(params.id, data);
+    const updated: Task = await updateTask(params.id, data);
     return NextResponse.json(updated);
   } catch (err) {
     console.error(`PUT /api/tasks/${params.id} error:`, err);
@@ -70,7 +71,7 @@ export async function PUT(
 export async function DELETE(
   _req: Request,
   { params }: { params: { id: string } }
-) {
+): Promise<NextResponse> {
   try {
     await deleteTask(params.id);
     return NextResponse.json({ success: true });

@@ -10,27 +10,26 @@ import {
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ViewTaskSchema, ViewTaskFormValues } from "../../../schemas/forms";
+import type { Task, TaskUpdatePayload } from "@/util/types";
+import {
+  mapTaskToViewTaskForm,
+  mapViewTaskFormToTaskUpdatePayload,
+} from "@/util/typeMappers";
 
 const viewTaskResolver = zodResolver(
   ViewTaskSchema
 ) as unknown as Resolver<ViewTaskFormValues>;
 
 type ViewTaskModalProps = {
-  title: string;
-  description: string;
-  subtasks: ViewTaskFormValues["subtasks"];
-  columnId: string;
+  task: Task;
   columnOptions: any[];
   onColumnChange?: (columnId: string) => void;
-  onEdit: (form: ViewTaskFormValues) => void;
+  onEdit: (form: TaskUpdatePayload) => void;
   onDelete: () => void;
 };
 
 const ViewTaskModal: React.FC<ViewTaskModalProps> = ({
-  title,
-  description,
-  subtasks = [],
-  columnId,
+  task,
   columnOptions = [],
   onEdit,
   onDelete,
@@ -42,23 +41,13 @@ const ViewTaskModal: React.FC<ViewTaskModalProps> = ({
   const { register, handleSubmit, control, setValue, watch, reset } =
     useForm<ViewTaskFormValues>({
       resolver: viewTaskResolver,
-      defaultValues: {
-        title,
-        description,
-        columnId,
-        subtasks: subtasks.map((s) => ({ ...s })),
-      },
+      defaultValues: mapTaskToViewTaskForm(task),
     });
 
   // Keep form state in sync with props if modal is reopened with new data
   useEffect(() => {
-    reset({
-      title,
-      description,
-      columnId,
-      subtasks: subtasks.map((s) => ({ ...s })),
-    });
-  }, [title, description, columnId, subtasks, reset]);
+    reset(mapTaskToViewTaskForm(task));
+  }, [task, reset]);
 
   const { fields } = useFieldArray<ViewTaskFormValues, "subtasks">({
     control,
@@ -88,16 +77,14 @@ const ViewTaskModal: React.FC<ViewTaskModalProps> = ({
     onDelete();
   };
 
-  console.log(columnOptions);
-
   const onSubmit = (data: ViewTaskFormValues) => {
     setIsEdit(false);
-    onEdit(data);
+    onEdit(mapViewTaskFormToTaskUpdatePayload(data));
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="flex justify-between items-cente mb-6">
+      <div className="flex justify-between items-center mb-6">
         {isEdit ? (
           <input
             className="text-lg font-bold leading-tight w-full bg-gray-100 dark:bg-[#22232e] rounded px-2 py-1"

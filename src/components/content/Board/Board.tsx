@@ -1,10 +1,17 @@
 "use client";
 
 import React from "react";
-import Column, { ColumnType } from "./Column";
+import Column from "./Column";
 import Button from "../../ui/Button/Button";
 import { useModal } from "../../../providers/ModalProvider";
 import EditBoardModal from "../../ui/Modal/EditBoardModal";
+
+type ColumnType = {
+  id: string;
+  name: string;
+  color: "teal" | "purple" | "green";
+  tasks: any[];
+};
 
 type BoardProps = {
   columns: ColumnType[];
@@ -48,7 +55,7 @@ const Board: React.FC<BoardProps> = ({ columns, onEditBoard }) => {
         </div>
       ) : (
         <div className="flex gap-6 h-full overflow-x-auto">
-          {columns.map((column) => (
+          {columns.map((column: ColumnType) => (
             <Column key={column.id} column={column} allColumns={columns} />
           ))}
           <Button

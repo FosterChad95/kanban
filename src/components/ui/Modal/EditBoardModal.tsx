@@ -6,21 +6,15 @@ import TextField from "../TextField/TextField";
 import X from "../../../images/X";
 import { BoardSchema, BoardFormValues } from "../../../schemas/forms";
 
+import type { Board } from "@/util/types";
+
 const boardResolver = zodResolver(
   BoardSchema
 ) as unknown as Resolver<BoardFormValues>;
 
-type Board = {
-  name: string;
-  columns: { id: string; name: string }[];
-};
-
 type EditBoardModalProps = {
   board: Board;
-  onEdit: (form: {
-    name: string;
-    columns: { id: string; name: string }[];
-  }) => void;
+  onEdit: (form: Board) => void;
 };
 
 const EditBoardModal: React.FC<EditBoardModalProps> = ({ board, onEdit }) => {
@@ -57,7 +51,7 @@ const EditBoardModal: React.FC<EditBoardModalProps> = ({ board, onEdit }) => {
   });
 
   const onSubmit = (data: BoardFormValues) => {
-    const payload = {
+    const payload: Board = {
       name: data.name,
       columns: (data.columns ?? [])
         .filter((col) => (col.name ?? "").trim() !== "")

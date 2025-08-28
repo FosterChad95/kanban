@@ -244,7 +244,6 @@ export default function TeamsSection() {
     <section className="mb-12">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-semibold">Teams</h2>
-        {/* Add Team Button */}
         <button
           className="bg-main-purple text-white px-4 py-2 rounded hover:bg-main-purple-light transition-colors"
           onClick={() => dispatchTeams({ type: "SHOW_ADD" })}
@@ -395,7 +394,6 @@ export default function TeamsSection() {
                   type: "SET_DELETE_ERROR",
                   error: "An error occurred while deleting the team.",
                 });
-                // eslint-disable-next-line no-console
                 console.error("Delete team error:", err);
               } finally {
                 dispatchTeams({ type: "SET_DELETING", deleting: false });

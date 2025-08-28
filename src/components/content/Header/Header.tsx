@@ -85,14 +85,56 @@ const Header: React.FC<HeaderProps> = ({ boards, adminOnlyLogo = false }) => {
         }}
         onEdit={async (payload: {
           name: string;
-          columns: { name: string }[];
+          columns: { id?: string; name: string }[];
         }) => {
           try {
             if (!activeBoard.id) throw new Error("Missing board id");
+
+            // Build Prisma-style update payload for columns
+            const originalColumns = activeBoard.columns || [];
+            const editedColumns = payload.columns || [];
+
+            // Map for quick lookup
+            const originalById = Object.fromEntries(
+              originalColumns
+                .filter((col) => col.id)
+                .map((col) => [col.id, col])
+            );
+
+            // Columns to update (existing columns with changed names)
+            const update = editedColumns
+              .filter((col) => col.id && originalById[col.id])
+              .map((col) => ({
+                where: { id: col.id },
+                data: { name: col.name },
+              }));
+
+            // Columns to create (new columns without id)
+            const create = editedColumns
+              .filter((col) => !col.id)
+              .map((col) => ({ name: col.name }));
+
+            // Columns to delete (ids in original but not in edited)
+            const editedIds = new Set(
+              editedColumns.filter((col) => col.id).map((col) => col.id)
+            );
+            const deleteIds = originalColumns
+              .filter((col) => col.id && !editedIds.has(col.id))
+              .map((col) => ({ id: col.id }));
+
+            const prismaPayload = {
+              name: payload.name,
+              columns: {
+                update,
+                create,
+                delete: deleteIds,
+              },
+            };
+
             await fetch(`/api/boards/${activeBoard.id}`, {
               method: "PUT",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload),
+              body: JSON.stringify(prismaPayload),
             });
             closeModal();
             router.refresh();

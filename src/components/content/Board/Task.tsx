@@ -1,37 +1,20 @@
 import React from "react";
 import { useModal } from "../../../providers/ModalProvider";
 import ViewTaskModal from "../../ui/Modal/ViewTaskModal";
-
-export type Subtask = {
-  id: string;
-  title: string;
-  completed: boolean;
-};
-
-export type TaskType = {
-  id: string;
-  title: string;
-  description: string;
-  subtasks: Subtask[];
-  columnId: string;
-  columnOptions: any[];
-};
+import type { Task } from "@/util/types";
 
 type TaskProps = {
-  task: TaskType;
+  task: Task & { columnOptions: any[] };
 };
 
 const Task: React.FC<TaskProps> = ({ task }) => {
   const { openModal } = useModal();
-  const completedCount = task.subtasks.filter((s) => s.completed).length;
+  const completedCount = task.subtasks.filter((s) => s.isCompleted).length;
 
   const handleClick = () => {
     openModal(
       <ViewTaskModal
-        title={task.title}
-        description={task.description}
-        subtasks={task.subtasks}
-        columnId={task.columnId ?? ""}
+        task={task}
         columnOptions={task.columnOptions ?? []}
         onEdit={async (form) => {
           if (!task.id) {
