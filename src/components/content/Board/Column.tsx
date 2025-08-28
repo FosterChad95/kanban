@@ -1,20 +1,24 @@
 import React from "react";
-import Task, { TaskType } from "./Task";
+import Task from "./Task";
+import type { Task as TaskType } from "@/util/types";
 import { cn } from "@/lib/utils";
 
-type ColumnType = {
-  id: string;
-  name: string;
-  color: "teal" | "purple" | "green";
-  tasks: TaskType[];
-};
-
 type ColumnProps = {
-  column: ColumnType;
-  allColumns: ColumnType[];
+  column: {
+    id: string;
+    name: string;
+    color: "teal" | "purple" | "green";
+    tasks: TaskType[];
+  };
+  allColumns: {
+    id: string;
+    name: string;
+    color: "teal" | "purple" | "green";
+    tasks: TaskType[];
+  }[];
 };
 
-const colorClasses: Record<ColumnType["color"], string> = {
+const colorClasses: Record<ColumnProps["column"]["color"], string> = {
   teal: "bg-[#49c4e5]",
   purple: "bg-[#8471F2]",
   green: "bg-[#67e2ae]",
@@ -32,16 +36,12 @@ const Column: React.FC<ColumnProps> = ({ column, allColumns }) => {
         </span>
       </div>
       <div className="flex flex-col gap-5">
-        {column.tasks.map((task) => (
-          <Task
-            key={task.title}
-            task={{ ...task, columnOptions: allColumns }}
-          />
+        {column.tasks.map((task: Task) => (
+          <Task key={task.id} task={{ ...task, columnOptions: allColumns }} />
         ))}
       </div>
     </div>
   );
 };
 
-export type { ColumnType };
 export default Column;
