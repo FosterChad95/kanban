@@ -16,11 +16,24 @@ export async function GET() {
 
     const teams = await prisma.team.findMany({
       include: {
-        users: true,
+        users: {
+          include: {
+            user: {
+              select: { id: true, name: true },
+            },
+          },
+        },
       },
     });
 
-    return NextResponse.json(teams, { status: 200 });
+    // Map users to array of { id, name }
+    const teamsWithUsers = teams.map((team) => ({
+      id: team.id,
+      name: team.name,
+      users: team.users.map((ut) => ut.user),
+    }));
+
+    return NextResponse.json(teamsWithUsers, { status: 200 });
   } catch (err) {
     console.error("GET /api/teams error:", err);
     return NextResponse.json(

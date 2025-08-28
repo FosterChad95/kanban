@@ -12,11 +12,11 @@ import AddTaskModal from "../../ui/Modal/AddTaskModal";
 import EditBoardModal from "../../ui/Modal/EditBoardModal";
 import DeleteModal from "../../ui/Modal/DeleteModal";
 
-export interface Board {
+import type { Board as BaseBoard } from "../../../util/types";
+
+interface Board extends BaseBoard {
   id?: string;
-  name: string;
   active: boolean;
-  columns?: { id: string; name: string }[]; // for EditBoardModal
 }
 
 interface HeaderProps {
