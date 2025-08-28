@@ -38,7 +38,21 @@ export async function PUT(
 ) {
   try {
     const body = await req.json();
-    const updated = await updateTask(params.id, body);
+    // Extract subtasks and map to updateMany structure
+    const { subtasks, ...rest } = body;
+    let data: any = { ...rest };
+    if (Array.isArray(subtasks)) {
+      data.subtasks = {
+        updateMany: subtasks.map((s: any) => ({
+          where: { id: s.id },
+          data: {
+            title: s.title,
+            isCompleted: s.completed,
+          },
+        })),
+      };
+    }
+    const updated = await updateTask(params.id, data);
     return NextResponse.json(updated);
   } catch (err) {
     console.error(`PUT /api/tasks/${params.id} error:`, err);

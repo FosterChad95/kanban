@@ -28,7 +28,7 @@ interface DropdownProps {
 }
 
 export const Dropdown = ({
-  options,
+  options = [],
   value,
   onChange,
   placeholder,
@@ -175,11 +175,15 @@ export const Dropdown = ({
       // If value is a string, try to find the matching option object
       let displayOption: DropdownOption | undefined = value as DropdownOption;
       if (typeof value === "string") {
-        displayOption = options.find(
-          (opt) =>
-            (typeof opt === "string" && opt === value) ||
-            (typeof opt === "object" && opt.id === value)
-        );
+        if (Array.isArray(options) && options.length > 0) {
+          displayOption = options.find(
+            (opt) =>
+              (typeof opt === "string" && opt === value) ||
+              (typeof opt === "object" && opt.id === value)
+          );
+        } else {
+          displayOption = undefined;
+        }
       }
 
       if (!displayOption) {
@@ -207,6 +211,8 @@ export const Dropdown = ({
       );
     }
   };
+
+  const safeOptions = Array.isArray(options) ? options : [];
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -250,7 +256,7 @@ export const Dropdown = ({
           role="listbox"
           className="absolute z-10 w-full mt-1 py-1 bg-white border border-gray-200 rounded-lg shadow-lg"
         >
-          {options.map((option) => {
+          {safeOptions.map((option) => {
             const selected = isSelected(option);
             return (
               <li

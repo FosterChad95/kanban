@@ -17,7 +17,10 @@ type Board = {
 
 type EditBoardModalProps = {
   board: Board;
-  onEdit: (form: { name: string; columns: { name: string }[] }) => void;
+  onEdit: (form: {
+    name: string;
+    columns: { id: string; name: string }[];
+  }) => void;
 };
 
 const EditBoardModal: React.FC<EditBoardModalProps> = ({ board, onEdit }) => {
@@ -58,7 +61,10 @@ const EditBoardModal: React.FC<EditBoardModalProps> = ({ board, onEdit }) => {
       name: data.name,
       columns: (data.columns ?? [])
         .filter((col) => (col.name ?? "").trim() !== "")
-        .map((col) => ({ name: col.name })),
+        .map((col) => ({
+          id: col.id ?? crypto.randomUUID(),
+          name: col.name,
+        })),
     };
     onEdit(payload);
   };

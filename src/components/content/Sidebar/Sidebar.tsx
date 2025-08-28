@@ -61,18 +61,18 @@ const Sidebar: React.FC<SidebarProps> = ({
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -300, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="w-[270px] bg-white border-r border-r-[#E4EBFA] flex flex-col py-4 h-full pr-[24px] min-h-screen shadow-lg overflow-y-auto"
+            className="w-[270px] bg-white border-r border-r-[#E4EBFA] flex flex-col py-8 h-full pr-[24px] min-h-screen shadow-lg overflow-y-auto"
           >
             {/* Sidebar Logo with fade-out */}
             <motion.div
               initial={{ opacity: 1 }}
               animate={{ opacity: logoVisible ? 1 : 0 }}
               transition={{ duration: 0.3 }}
-              className="pl-8 pb-2"
+              className="pl-8"
             >
               <Logo />
             </motion.div>
-            <div className="flex-1">
+            <div className="flex-1 pt-12">
               <h2 className="py-4 pl-8 text-medium-gray tracking-[2.4px] uppercase font-bold text-xs">
                 All Boards ({numberBoards})
               </h2>
@@ -124,7 +124,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               <ThemeToggle />
               <Button
                 variant="secondary"
-                className="w-full mb-2"
+                className="mb-2"
                 onClick={() => setSettingsOpen(true)}
               >
                 Settings
