@@ -20,7 +20,7 @@ const colorClasses: Record<ColumnType["color"], string> = {
   green: "bg-[#67e2ae]",
 };
 
-const Column: React.FC<ColumnProps> = ({ column }) => {
+const Column: React.FC<ColumnProps> = ({ column, allColumns }) => {
   return (
     <div className="min-w-[280px] w-72 flex-shrink-0">
       <div className="flex items-center gap-2 mb-6">
@@ -33,7 +33,10 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
       </div>
       <div className="flex flex-col gap-5">
         {column.tasks.map((task) => (
-          <Task key={task.title} task={task} />
+          <Task
+            key={task.title}
+            task={{ ...task, columnOptions: allColumns }}
+          />
         ))}
       </div>
     </div>

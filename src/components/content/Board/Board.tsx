@@ -8,9 +8,13 @@ import EditBoardModal from "../../ui/Modal/EditBoardModal";
 
 type BoardProps = {
   columns: ColumnType[];
+  onEditBoard?: (form: {
+    name: string;
+    columns: { id: string; name: string }[];
+  }) => void;
 };
 
-const Board: React.FC<BoardProps> = ({ columns }) => {
+const Board: React.FC<BoardProps> = ({ columns, onEditBoard }) => {
   const { openModal, closeModal } = useModal();
 
   const handleOpenEditBoard = () => {
@@ -21,7 +25,10 @@ const Board: React.FC<BoardProps> = ({ columns }) => {
     openModal(
       <EditBoardModal
         board={boardData}
-        onEdit={() => {
+        onEdit={(form) => {
+          if (onEditBoard) {
+            onEditBoard(form);
+          }
           closeModal();
         }}
       />

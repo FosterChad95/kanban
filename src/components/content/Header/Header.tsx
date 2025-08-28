@@ -166,7 +166,7 @@ const Header: React.FC<HeaderProps> = ({ boards, adminOnlyLogo = false }) => {
   }
 
   return (
-    <header className="w-full border-b border-gray-200 bg-white px-4 py-2 flex items-center justify-between md:px-8 md:py-0 md:h-24">
+    <header className="w-full border-b border-gray-200 border-l bg-white px-4 py-2 flex items-center justify-between md:px-8 md:py-0 md:h-24">
       <div className="md:h-full md:flex-grow flex md:align-middle md:justify-end w-full justify-between">
         {/* Mobile: LogoMobile + Board Name Dropdown */}
         <div className="flex items-center gap-2 md:hidden">

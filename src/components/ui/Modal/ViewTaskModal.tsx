@@ -19,9 +19,9 @@ type ViewTaskModalProps = {
   title: string;
   description: string;
   subtasks: ViewTaskFormValues["subtasks"];
-  status: string;
-  statusOptions: any[];
-  onStatusChange?: (status: string) => void;
+  columnId: string;
+  columnOptions: any[];
+  onColumnChange?: (columnId: string) => void;
   onEdit: (form: ViewTaskFormValues) => void;
   onDelete: () => void;
 };
@@ -30,10 +30,11 @@ const ViewTaskModal: React.FC<ViewTaskModalProps> = ({
   title,
   description,
   subtasks = [],
-  status,
-  statusOptions,
+  columnId,
+  columnOptions = [],
   onEdit,
   onDelete,
+  onColumnChange,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
@@ -44,7 +45,7 @@ const ViewTaskModal: React.FC<ViewTaskModalProps> = ({
       defaultValues: {
         title,
         description,
-        status,
+        columnId,
         subtasks: subtasks.map((s) => ({ ...s })),
       },
     });
@@ -54,10 +55,10 @@ const ViewTaskModal: React.FC<ViewTaskModalProps> = ({
     reset({
       title,
       description,
-      status,
+      columnId,
       subtasks: subtasks.map((s) => ({ ...s })),
     });
-  }, [title, description, status, subtasks, reset]);
+  }, [title, description, columnId, subtasks, reset]);
 
   const { fields } = useFieldArray<ViewTaskFormValues, "subtasks">({
     control,
@@ -87,6 +88,8 @@ const ViewTaskModal: React.FC<ViewTaskModalProps> = ({
     onDelete();
   };
 
+  console.log(columnOptions);
+
   const onSubmit = (data: ViewTaskFormValues) => {
     setIsEdit(false);
     onEdit(data);
@@ -94,7 +97,7 @@ const ViewTaskModal: React.FC<ViewTaskModalProps> = ({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="flex justify-between items-start mb-6">
+      <div className="flex justify-between items-cente mb-6">
         {isEdit ? (
           <input
             className="text-lg font-bold leading-tight w-full bg-gray-100 dark:bg-[#22232e] rounded px-2 py-1"
@@ -172,12 +175,26 @@ const ViewTaskModal: React.FC<ViewTaskModalProps> = ({
         </div>
         <Controller
           control={control}
-          name="status"
+          name="columnId"
           render={({ field }) => (
             <Dropdown
-              options={statusOptions}
+              options={columnOptions}
               value={field.value}
-              onChange={(val: unknown) => field.onChange(val)}
+              onChange={(val) => {
+                let newValue: string;
+                if (typeof val === "string") {
+                  newValue = val;
+                } else if (val && typeof val === "object" && "id" in val) {
+                  newValue = val.id;
+                } else {
+                  // Instead of empty string, fallback to current field value to avoid type error
+                  newValue = field.value;
+                }
+                field.onChange(newValue);
+                if (onColumnChange) {
+                  onColumnChange(newValue);
+                }
+              }}
               disabled={!isEdit}
             />
           )}
