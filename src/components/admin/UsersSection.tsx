@@ -98,8 +98,11 @@ export default function UsersSection() {
 
       if (res.ok) {
         const data = await res.json();
-
-        dispatch({ type: "SET_USERS", users: data });
+        // Filter out admin users
+        const nonAdminUsers = Array.isArray(data)
+          ? data.filter((user: any) => user.role !== "admin")
+          : [];
+        dispatch({ type: "SET_USERS", users: nonAdminUsers });
       } else {
         dispatch({ type: "SET_ERROR", error: "Failed to fetch users." });
       }
