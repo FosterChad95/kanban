@@ -23,18 +23,34 @@ export async function PUT(
       return NextResponse.json({ error: "Missing team name" }, { status: 400 });
     }
 
-    // Update team name and users
-    const updatedTeam = await prisma.team.update({
-      where: { id: teamId },
-      data: {
-        name,
-        users: userIds
-          ? {
-              set: userIds.map((id: string) => ({ id })),
-            }
-          : undefined,
-      },
-      include: { users: true },
+    // Update team name and users (handle UserTeam join table directly)
+    const updatedTeam = await prisma.$transaction(async (tx) => {
+      // Update team name
+      await tx.team.update({
+        where: { id: teamId },
+        data: { name },
+      });
+
+      // Remove all existing UserTeam relations for this team
+      await tx.userTeam.deleteMany({
+        where: { teamId },
+      });
+
+      // Add new UserTeam relations for each userId
+      if (Array.isArray(userIds) && userIds.length > 0) {
+        await tx.userTeam.createMany({
+          data: userIds.map((userId: string) => ({
+            userId,
+            teamId,
+          })),
+        });
+      }
+
+      // Return the updated team with users
+      return tx.team.findUnique({
+        where: { id: teamId },
+        include: { users: true },
+      });
     });
 
     return NextResponse.json(updatedTeam, { status: 200 });
