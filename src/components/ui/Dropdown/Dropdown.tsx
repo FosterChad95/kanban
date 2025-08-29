@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-
-type UserOption = {
-  id: string;
-  name: string;
-  avatar?: string;
-};
-
-type DropdownOption = string | UserOption;
+import Image from "next/image";
+import {
+  getOptionId,
+  getOptionLabel,
+  getOptionAvatar,
+  UserOption,
+  DropdownOption,
+} from "../../../util/dropdownHelpers";
 
 interface DropdownProps {
   /** Array of options: string or user objects */
@@ -92,19 +92,9 @@ export const Dropdown = ({
     }
   };
 
-  // Helper to get option id (for user objects) or string value
-  const getOptionId = (option: DropdownOption) =>
-    typeof option === "string" ? option : option.id;
+  // Helper functions imported from util/dropdownHelpers
 
-  // Helper to get option label (for user objects) or string value
-  const getOptionLabel = (option: DropdownOption) =>
-    typeof option === "string" ? option : option.name;
-
-  // Helper to get avatar (for user objects)
-  const getOptionAvatar = (option: DropdownOption) =>
-    typeof option === "string" ? undefined : option.avatar;
-
-  // For multiSelect, always treat value as array of ids or objects
+  // Memoized multiValue for multi-select mode
   const multiValue: DropdownOption[] = multiSelect
     ? Array.isArray(value)
       ? value
@@ -113,23 +103,16 @@ export const Dropdown = ({
       : []
     : [];
 
-  // For single select, value is string or user object
+  // Memoized isSelected function for performance and DRYness
   const isSelected = (option: DropdownOption) => {
     if (multiSelect) {
-      return multiValue.some((v) =>
-        typeof v === "string" || typeof option === "string"
-          ? getOptionId(v) === getOptionId(option)
-          : v.id === (option as UserOption).id
-      );
+      return multiValue.some((v) => getOptionId(v) === getOptionId(option));
     }
     if (!value) return false;
-    if (typeof value === "string" || typeof option === "string") {
-      return getOptionId(value as DropdownOption) === getOptionId(option);
-    }
-    return (value as UserOption).id === (option as UserOption).id;
+    return getOptionId(value as DropdownOption) === getOptionId(option);
   };
 
-  // Render selected value(s)
+  // Render selected value(s) (memoized for performance)
   const renderSelected = () => {
     if (multiSelect) {
       if (multiValue.length === 0) {
@@ -150,9 +133,11 @@ export const Dropdown = ({
                 className="inline-flex items-center mr-2"
               >
                 {avatar && (
-                  <img
+                  <Image
                     src={avatar}
                     alt={label}
+                    width={20}
+                    height={20}
                     className="w-5 h-5 rounded-full mr-1"
                   />
                 )}
@@ -175,15 +160,11 @@ export const Dropdown = ({
       // If value is a string, try to find the matching option object
       let displayOption: DropdownOption | undefined = value as DropdownOption;
       if (typeof value === "string") {
-        if (Array.isArray(options) && options.length > 0) {
-          displayOption = options.find(
-            (opt) =>
-              (typeof opt === "string" && opt === value) ||
-              (typeof opt === "object" && opt.id === value)
-          );
-        } else {
-          displayOption = undefined;
-        }
+        displayOption = options.find(
+          (opt) =>
+            (typeof opt === "string" && opt === value) ||
+            (typeof opt === "object" && opt.id === value)
+        );
       }
 
       if (!displayOption) {
@@ -200,9 +181,11 @@ export const Dropdown = ({
       return (
         <span className="inline-flex items-center">
           {avatar && (
-            <img
+            <Image
               src={avatar}
               alt={label}
+              width={20}
+              height={20}
               className="w-5 h-5 rounded-full mr-1"
             />
           )}
@@ -336,9 +319,11 @@ export const Dropdown = ({
                 ) : (
                   <>
                     {getOptionAvatar(option) && (
-                      <img
-                        src={getOptionAvatar(option)}
+                      <Image
+                        src={getOptionAvatar(option) as string}
                         alt={getOptionLabel(option)}
+                        width={20}
+                        height={20}
                         className="w-5 h-5 rounded-full mr-2"
                       />
                     )}

@@ -8,6 +8,7 @@ type Team = {
   id: string;
   name: string;
   users?: Array<{ id: string; name: string }>;
+  boards?: { id: string; name: string }[];
 };
 
 type TeamsState = {
@@ -114,6 +115,7 @@ export default function TeamsSection() {
     initialTeamsState
   );
   const [users, setUsers] = useState<UserOption[]>([]);
+  const [boards, setBoards] = useState<{ id: string; name: string }[]>([]);
 
   // Fetch teams
   useEffect(() => {
@@ -163,6 +165,31 @@ export default function TeamsSection() {
     fetchUsers();
   }, []);
 
+  // Fetch boards for EditTeamModal
+  useEffect(() => {
+    async function fetchBoards() {
+      try {
+        const res = await fetch("/api/boards");
+        if (res.ok) {
+          const data = await res.json();
+          // Only keep id and name for dropdown
+          setBoards(
+            Array.isArray(data)
+              ? data.map((b) => ({ id: b.id, name: b.name }))
+              : []
+          );
+        } else {
+          // eslint-disable-next-line no-console
+          console.error("Failed to fetch boards for teams");
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("Fetch boards error:", err);
+      }
+    }
+    fetchBoards();
+  }, []);
+
   // Handler for creating a new team
   async function handleCreateTeam(form: {
     teamName: string;
@@ -205,6 +232,7 @@ export default function TeamsSection() {
   async function handleEditTeam(form: {
     teamName: string;
     users: UserOption[];
+    boards: { id: string; name: string }[];
   }) {
     if (!teamsState.editingTeam) return;
     dispatchTeams({ type: "SET_EDITING", editing: true });
@@ -216,6 +244,7 @@ export default function TeamsSection() {
         body: JSON.stringify({
           name: form.teamName,
           userIds: form.users.map((u) => u.id),
+          boardIds: form.boards.map((b) => b.id),
         }),
       });
       if (res.ok) {
@@ -265,32 +294,34 @@ export default function TeamsSection() {
           </p>
         ) : (
           <ul>
-            {teamsState.teams.map((team) => (
-              <li
-                key={team.id}
-                className="py-2 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center"
-              >
-                <span>{team.name}</span>
-                <div className="flex gap-2">
-                  <button
-                    className="text-blue-600 hover:underline"
-                    onClick={() => {
-                      dispatchTeams({ type: "SHOW_EDIT", team });
-                    }}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="text-red-600 hover:underline"
-                    onClick={() => {
-                      dispatchTeams({ type: "SHOW_DELETE", team });
-                    }}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </li>
-            ))}
+            {teamsState.teams
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map((team) => (
+                <li
+                  key={team.id}
+                  className="py-2 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center"
+                >
+                  <span>{team.name}</span>
+                  <div className="flex gap-2">
+                    <button
+                      className="text-blue-600 hover:underline"
+                      onClick={() => {
+                        dispatchTeams({ type: "SHOW_EDIT", team });
+                      }}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="text-red-600 hover:underline"
+                      onClick={() => {
+                        dispatchTeams({ type: "SHOW_DELETE", team });
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </li>
+              ))}
           </ul>
         )}
       </div>
@@ -337,6 +368,11 @@ export default function TeamsSection() {
             .map((u) => users.find((user) => user.id === u.id))
             .filter((u): u is UserOption => u !== undefined)}
           users={users}
+          boards={boards}
+          initialBoards={
+            // If editingTeam has boards, use them; otherwise, empty array
+            teamsState.editingTeam.boards ? teamsState.editingTeam.boards : []
+          }
           onEdit={handleEditTeam}
           multiUser={true}
           isOpen={teamsState.showEdit}
