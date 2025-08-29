@@ -17,13 +17,13 @@ export async function PUT(
       return NextResponse.json({ error: "Missing team ID" }, { status: 400 });
     }
 
-    const { name, userIds } = await req.json();
+    const { name, userIds, boardIds } = await req.json();
 
     if (!name) {
       return NextResponse.json({ error: "Missing team name" }, { status: 400 });
     }
 
-    // Update team name and users (handle UserTeam join table directly)
+    // Update team name, users, and boards (handle UserTeam and TeamBoard join tables directly)
     const updatedTeam = await prisma.$transaction(async (tx) => {
       // Update team name
       await tx.team.update({
@@ -46,10 +46,25 @@ export async function PUT(
         });
       }
 
-      // Return the updated team with users
+      // Remove all existing TeamBoard relations for this team
+      await tx.teamBoard.deleteMany({
+        where: { teamId },
+      });
+
+      // Add new TeamBoard relations for each boardId
+      if (Array.isArray(boardIds) && boardIds.length > 0) {
+        await tx.teamBoard.createMany({
+          data: boardIds.map((boardId: string) => ({
+            boardId,
+            teamId,
+          })),
+        });
+      }
+
+      // Return the updated team with users and boards
       return tx.team.findUnique({
         where: { id: teamId },
-        include: { users: true },
+        include: { users: true, boards: true },
       });
     });
 
