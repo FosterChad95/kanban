@@ -31,7 +31,7 @@ const MainBoardLayout: React.FC<MainBoardLayoutProps> = ({
   const [boards] = useState(initialBoards);
 
   // Prepare props for Header
-  const headerBoards = boards.map((b, idx) => ({
+  const headerBoards = boards.map((b) => ({
     id: b.id,
     name: b.name,
     active: false, // Header will determine active board using route params (client-side)

@@ -1,5 +1,5 @@
 import React from "react";
-import Board from "../../../components/content/Board/Board";
+import BoardWrapper from "../../../components/content/Board/BoardWrapper";
 import { getBoardById } from "../../../queries/boardQueries";
 import { redirect } from "next/navigation";
 
@@ -44,7 +44,13 @@ export default async function BoardPage({
         })) ?? [],
     })) ?? [];
 
-  // Board is rendered as a client component (Board). We don't pass an onEditBoard
-  // here because header's edit flow already performs updates and calls router.refresh().
-  return <Board columns={columns} />;
+  // Board is rendered as a client component. Use BoardWrapper (client) so it can
+  // persist column edits for the currently selected board without a full refresh.
+  return (
+    <BoardWrapper
+      boardId={boardId}
+      initialColumns={columns}
+      boardName={board.name}
+    />
+  );
 }

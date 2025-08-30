@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import Button from "@/components/ui/Button/Button";
 import ThemeToggle from "@/components/ui/ThemeToggle/ThemeToggle";
@@ -6,7 +7,7 @@ import SettingsModal from "@/components/ui/Modal/SettingsModal";
 import { motion, AnimatePresence } from "framer-motion";
 import IconBoardIcon from "@/components/ui/Icon/IconBoardIcon";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { useModal } from "@/providers/ModalProvider";
 import AddBoardModal from "@/components/ui/Modal/AddBoardModal";
 import Logo from "@/images/Logo";
@@ -31,6 +32,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [logoVisible, setLogoVisible] = React.useState(true);
   const numberBoards = boards.length;
   const router = useRouter();
+  const params = useParams();
+  const currentBoardId = (params as any)?.boardId;
   const { openModal, closeModal } = useModal();
 
   // Handle fade-out before hiding sidebar
@@ -76,18 +79,28 @@ const Sidebar: React.FC<SidebarProps> = ({
                 All Boards ({numberBoards})
               </h2>
               <div className="flex flex-col gap-2 mt-4">
-                {boards.map((board) => (
-                  <Link
-                    key={board.id}
-                    href={`/dashboard/${board.id}`}
-                    className="flex items-center gap-3 rounded-tr-[100px] justify-start rounded-br-[100px] rounded-tl-none rounded-bl-none w-full pl-8 py-[14px] hover:bg-main-purple transition-all hover:text-white"
-                  >
-                    <span className="inline-flex items-center justify-center mr-2">
-                      <IconBoardIcon />
-                    </span>
-                    <span className="truncate">{board.name}</span>
-                  </Link>
-                ))}
+                {boards.map((board) => {
+                  const isActive = board.id === currentBoardId;
+                  return (
+                    <Link
+                      key={board.id}
+                      href={`/dashboard/${board.id}`}
+                      aria-current={isActive ? "page" : undefined}
+                      className={`flex items-center gap-3 rounded-tr-[100px] justify-start rounded-br-[100px] rounded-tl-none rounded-bl-none w-full pl-8 py-[14px] transition-all ${
+                        isActive
+                          ? "bg-main-purple text-white"
+                          : "hover:bg-main-purple hover:text-white"
+                      }`}
+                    >
+                      <span className="inline-flex items-center justify-center mr-2">
+                        <IconBoardIcon
+                          className={isActive ? "text-white" : ""}
+                        />
+                      </span>
+                      <span className="truncate">{board.name}</span>
+                    </Link>
+                  );
+                })}
                 <Button
                   icon={<IconBoardIcon />}
                   variant="primary-l"

@@ -109,7 +109,17 @@ export async function updateBoard(id: string, data: Prisma.BoardUpdateInput) {
   return prisma.board.update({
     where: { id },
     data,
-    include: { columns: true },
+    include: {
+      columns: {
+        include: {
+          tasks: {
+            include: {
+              subtasks: true,
+            },
+          },
+        },
+      },
+    },
   });
 }
 
