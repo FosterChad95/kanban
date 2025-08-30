@@ -76,7 +76,7 @@ const MainBoardLayout: React.FC<MainBoardLayoutProps> = ({
     ) ?? [];
 
   return (
-    <div className="flex min-h-screen bg-light-gray">
+    <div className="flex min-h-screen bg-light-gray dark:bg-very-dark-gray">
       {/* Sidebar on the left spanning full height */}
       <AnimatePresence initial={false}>
         {sidebarVisible && (

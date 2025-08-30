@@ -94,7 +94,7 @@ const AddBoardModal: React.FC<AddBoardModalProps> = ({
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="bg-white dark:bg-[#2b2c37] rounded-lg p-8 w-full max-w-md"
+      className="bg-white dark:bg-[#2b2c37] text-black dark:text-light-gray rounded-lg p-8 w-full max-w-md"
       style={{ minWidth: 400 }}
     >
       <div className="flex justify-between items-start mb-6">
@@ -142,7 +142,9 @@ const AddBoardModal: React.FC<AddBoardModalProps> = ({
         )}
       </div>
       <div className="mb-4">
-        <label className="block text-xs font-bold mb-2">Name</label>
+        <label className="block text-xs font-bold mb-2 text-black dark:text-light-gray">
+          Name
+        </label>
         <TextField
           placeholder="e.g. Web Design"
           {...register("name", { required: "Name is required" })}
@@ -151,7 +153,9 @@ const AddBoardModal: React.FC<AddBoardModalProps> = ({
         />
       </div>
       <div className="mb-4">
-        <label className="block text-xs font-bold mb-2">Columns</label>
+        <label className="block text-xs font-bold mb-2 text-black dark:text-light-gray">
+          Columns
+        </label>
         <div className="flex flex-col gap-2">
           {fields.map((field, idx) => (
             <div key={field.id} className="flex items-center gap-2">

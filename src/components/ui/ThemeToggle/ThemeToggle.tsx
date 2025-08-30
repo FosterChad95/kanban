@@ -12,7 +12,7 @@ const ThemeToggle: React.FC = () => {
   const isDark = theme === "dark";
 
   return (
-    <div className="flex items-center justify-center gap-4 bg-light-gray px-6 py-3 rounded border border-[#A3BFFA]">
+    <div className="flex items-center justify-center gap-4 bg-light-gray dark:bg-dark-gray px-6 py-3 rounded border border-lines-light dark:border-lines-dark">
       {/* Sun icon */}
       <span role="img" aria-label="Light mode" className="text-xl">
         🌞
@@ -26,7 +26,7 @@ const ThemeToggle: React.FC = () => {
         onClick={toggleTheme}
       >
         <span
-          className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${
+          className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow dark:bg-main-purple transition-transform duration-200 ${
             isDark ? "translate-x-6" : ""
           }`}
         />

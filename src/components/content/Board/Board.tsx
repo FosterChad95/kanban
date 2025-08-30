@@ -45,10 +45,10 @@ const Board: React.FC<BoardProps> = ({ columns, onEditBoard }) => {
   };
 
   return (
-    <div className="flex flex-col flex-1 h-full bg-light-gray p-6">
+    <div className="flex flex-col flex-1 h-full bg-light-gray dark:bg-very-dark-gray p-6">
       {columns.length === 0 ? (
         <div className="flex flex-1 h-full flex-col items-center justify-center rounded-lg">
-          <p className="mb-6 text-medium-gray font-bold text-lg">
+          <p className="mb-6 text-medium-gray dark:text-light-gray font-bold text-lg">
             This board is empty. Create a new column to get started.
           </p>
           <Button variant="primary-l" onClick={handleOpenEditBoard}>

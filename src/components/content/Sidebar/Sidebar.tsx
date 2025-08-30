@@ -61,7 +61,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -300, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="w-[270px] bg-white border-r border-r-[#E4EBFA] flex flex-col py-8 h-full pr-[24px] min-h-screen shadow-lg overflow-y-auto"
+            className="w-[270px] bg-white dark:bg-dark-gray border-r border-r-[#E4EBFA] dark:border-r-lines-dark flex flex-col py-8 h-full pr-[24px] min-h-screen shadow-lg overflow-y-auto"
           >
             {/* Sidebar Logo with fade-out */}
             <motion.div
@@ -100,11 +100,20 @@ const Sidebar: React.FC<SidebarProps> = ({
                           columns: { name: string }[];
                         }) => {
                           try {
-                            await fetch("/api/boards", {
+                            const res = await fetch("/api/boards", {
                               method: "POST",
                               headers: { "Content-Type": "application/json" },
                               body: JSON.stringify(payload),
                             });
+                            if (!res.ok) {
+                              let detail = "";
+                              try {
+                                const data = await res.json();
+                                detail = data?.error ? `: ${data.error}` : "";
+                              } catch {}
+                              console.error(`Failed to create board${detail}`);
+                              return;
+                            }
                             closeModal();
                             router.refresh();
                           } catch (err) {

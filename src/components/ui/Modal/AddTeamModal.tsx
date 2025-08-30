@@ -66,14 +66,16 @@ const AddTeamModal: React.FC<AddTeamModalProps> = ({
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="bg-white dark:bg-[#2b2c37] rounded-lg p-8 w-full max-w-md"
+      className="bg-white dark:bg-[#2b2c37] text-black dark:text-light-gray rounded-lg p-8 w-full max-w-md"
       style={{ minWidth: 400 }}
     >
       <div className="flex justify-between items-start mb-6">
         <h2 className="text-xl font-bold">Add New Team</h2>
       </div>
       <div className="mb-4">
-        <label className="block text-xs font-bold mb-2">Team Name</label>
+        <label className="block text-xs font-bold mb-2 text-black dark:text-light-gray">
+          Team Name
+        </label>
         <TextField
           placeholder="e.g. Product Team"
           {...register("teamName")}
@@ -81,7 +83,9 @@ const AddTeamModal: React.FC<AddTeamModalProps> = ({
         />
       </div>
       <div className="mb-4">
-        <label className="block text-xs font-bold mb-2">Users</label>
+        <label className="block text-xs font-bold mb-2 text-black dark:text-light-gray">
+          Users
+        </label>
         <Dropdown
           options={users}
           value={selectedUsers}
