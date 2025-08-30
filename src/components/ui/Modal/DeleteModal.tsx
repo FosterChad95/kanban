@@ -36,9 +36,11 @@ const DeleteModal: React.FC<DeleteModalProps> = ({
 
   return (
     <Modal isOpen={open} onClose={onCancel}>
-      <div className="p-6 w-[350px] sm:w-[400px]">
+      <div className="p-6 w-[350px] sm:w-[400px] text-black dark:text-light-gray">
         <h2 className="text-red text-lg font-bold mb-4">{title}</h2>
-        <p className="text-sm text-gray-500 mb-6">{message}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-300 mb-6">
+          {message}
+        </p>
         <div className="flex gap-4">
           <Button
             className="flex-1"

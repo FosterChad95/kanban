@@ -85,12 +85,14 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="bg-white dark:bg-[#2b2c37] rounded-lg p-8 w-full max-w-md"
+      className="bg-white dark:bg-[#2b2c37] text-black dark:text-light-gray rounded-lg p-8 w-full max-w-md"
       style={{ minWidth: 400 }}
     >
       <h2 className="text-xl font-bold mb-6">Add New Task</h2>
       <div className="mb-4">
-        <label className="block text-xs font-bold mb-2">Title</label>
+        <label className="block text-xs font-bold mb-2 text-black dark:text-light-gray">
+          Title
+        </label>
         <TextField
           placeholder="e.g. Take coffee break"
           {...register("title")}
@@ -98,16 +100,20 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
         />
       </div>
       <div className="mb-4">
-        <label className="block text-xs font-bold mb-2">Description</label>
+        <label className="block text-xs font-bold mb-2 text-black dark:text-light-gray">
+          Description
+        </label>
         <textarea
-          className="w-full px-4 py-2 rounded-[4px] border border-[rgba(130,143,163,0.25)] bg-white heading-medium placeholder:text-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-main-purple focus:ring-opacity-25 focus:border-main-purple hover:border-main-purple"
+          className="w-full px-4 py-2 rounded-[4px] border border-[rgba(130,143,163,0.25)] bg-white dark:bg-[#22232e] heading-medium placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-main-purple focus:ring-opacity-25 focus:border-main-purple hover:border-main-purple"
           placeholder="e.g. It’s always good to take a break. This 15 minute break will recharge the batteries a little."
           rows={4}
           {...register("description")}
         />
       </div>
       <div className="mb-4">
-        <label className="block text-xs font-bold mb-2">Subtasks</label>
+        <label className="block text-xs font-bold mb-2 text-black dark:text-light-gray">
+          Subtasks
+        </label>
         <div className="flex flex-col gap-2">
           {fields.map((field, idx) => (
             <div key={field.id} className="flex items-center gap-2">
@@ -140,7 +146,9 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
         </Button>
       </div>
       <div className="mb-6">
-        <label className="block text-xs font-bold mb-2">Column</label>
+        <label className="block text-xs font-bold mb-2 text-black dark:text-light-gray">
+          Column
+        </label>
         <Controller
           control={control}
           name="columnId"

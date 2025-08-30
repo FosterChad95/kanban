@@ -25,7 +25,8 @@ export async function GET() {
 
 /**
  * POST /api/boards
- * Create a new board. Expects JSON body matching Prisma.BoardCreateInput shape used by your helper.
+ * Create a new board. Accepts simple payload: { name: string, columns?: { name: string }[] }.
+ * Transforms to Prisma create shape internally.
  */
 export async function POST(req: Request) {
   try {
@@ -34,7 +35,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const body = await req.json();
-    const created = await createBoard(body);
+    // Normalize incoming payload { name: string; columns?: { name: string }[] }
+    if (!body?.name || typeof body.name !== "string") {
+      return NextResponse.json({ error: "Invalid name" }, { status: 400 });
+    }
+    const columnNames = Array.isArray(body.columns)
+      ? body.columns
+          .map((c: any) => (c?.name ?? "").trim())
+          .filter((n: string) => n.length > 0)
+      : [];
+    const created = await createBoard({
+      name: body.name,
+      ...(columnNames.length > 0
+        ? { columns: { create: columnNames.map((name: string) => ({ name })) } }
+        : {}),
+    });
 
     // Link the new board to the user in UserBoard
     // Import prisma directly here to avoid circular import

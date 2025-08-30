@@ -42,11 +42,13 @@ const Task: React.FC<TaskProps> = ({ task }) => {
 
   return (
     <div
-      className="bg-white rounded-lg shadow p-4 cursor-pointer hover:shadow-lg transition"
+      className="bg-white dark:bg-dark-gray rounded-lg shadow p-4 cursor-pointer hover:shadow-lg transition"
       onClick={handleClick}
     >
-      <div className="font-semibold text-gray-900 mb-2">{task.title}</div>
-      <div className="text-xs text-gray-500">
+      <div className="font-semibold text-gray-900 dark:text-light-gray mb-2">
+        {task.title}
+      </div>
+      <div className="text-xs text-gray-500 dark:text-light-gray">
         {completedCount} of {task.subtasks.length} subtasks
       </div>
     </div>

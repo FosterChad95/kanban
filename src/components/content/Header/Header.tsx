@@ -208,7 +208,7 @@ const Header: React.FC<HeaderProps> = ({ boards, adminOnlyLogo = false }) => {
   }
 
   return (
-    <header className="w-full border-b border-gray-200 border-l bg-white px-4 py-2 flex items-center justify-between md:px-8 md:py-0 md:h-24">
+    <header className="w-full border-b border-gray-200 border-l bg-white dark:bg-dark-gray px-4 py-2 flex items-center justify-between md:px-8 md:py-0 md:h-24">
       <div className="md:h-full md:flex-grow flex md:align-middle md:justify-end w-full justify-between">
         {/* Mobile: LogoMobile + Board Name Dropdown */}
         <div className="flex items-center gap-2 md:hidden">
@@ -218,7 +218,7 @@ const Header: React.FC<HeaderProps> = ({ boards, adminOnlyLogo = false }) => {
             onClick={() => setMobileMenuOpen((v) => !v)}
             aria-label="Open board menu"
           >
-            <span className="font-bold text-lg text-black select-none">
+            <span className="font-bold text-lg text-black dark:text-light-gray select-none">
               {boards.find((b) => b.active)?.name ||
                 (boards[0]?.name ?? "Board")}
             </span>
@@ -241,7 +241,7 @@ const Header: React.FC<HeaderProps> = ({ boards, adminOnlyLogo = false }) => {
         </div>
         {/* Desktop: Active Board Name */}
         <div className="hidden md:flex items-center ml-6 flex-grow">
-          <span className="font-bold text-lg text-black select-none mr-4">
+          <span className="font-bold text-lg text-black dark:text-light-gray select-none mr-4">
             {boards.find((b) => b.active)?.name || (boards[0]?.name ?? "Board")}
           </span>
         </div>

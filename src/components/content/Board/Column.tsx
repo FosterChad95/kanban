@@ -28,7 +28,7 @@ const Column: React.FC<ColumnProps> = ({ column, allColumns }) => {
           className={cn("h-3 w-3 rounded-full")}
           style={{ backgroundColor: column.color }}
         ></span>
-        <span className="uppercase text-xs tracking-widest text-gray-500 font-semibold">
+        <span className="uppercase text-xs tracking-widest text-gray-500 dark:text-light-gray font-semibold">
           {column.name} ({column.tasks.length})
         </span>
       </div>

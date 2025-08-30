@@ -38,7 +38,7 @@ const Checkbox: React.FC<CheckboxProps> = ({
             <label
               key={value}
               htmlFor={id}
-              className={`flex gap-4 transition-all duration-200 rounded-[4px] bg-light-gray hover:bg-main-purple hover:bg-opacity-25 items-center p-[12px] cursor-pointer ${
+              className={`flex gap-4 transition-all duration-200 rounded-[4px] bg-light-gray dark:bg-dark-gray hover:bg-main-purple hover:bg-opacity-25 items-center p-[12px] cursor-pointer ${
                 isDisabled && "cursor-not-allowed"
               }`}
             >

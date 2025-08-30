@@ -92,7 +92,7 @@ const EditTeamModal: React.FC<EditTeamModalProps> = ({
     <Modal isOpen={isOpen} onClose={onClose}>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="bg-white dark:bg-[#2b2c37] rounded-lg p-8 w-full max-w-md"
+        className="bg-white dark:bg-[#2b2c37] text-black dark:text-light-gray rounded-lg p-8 w-full max-w-md"
         style={{ minWidth: 400 }}
       >
         <div className="flex justify-between items-start mb-6">

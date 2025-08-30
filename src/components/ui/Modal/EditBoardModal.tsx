@@ -66,7 +66,7 @@ const EditBoardModal: React.FC<EditBoardModalProps> = ({ board, onEdit }) => {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="bg-white dark:bg-[#2b2c37] rounded-lg p-8 w-full max-w-md"
+      className="bg-white dark:bg-[#2b2c37] text-black dark:text-light-gray rounded-lg p-8 w-full max-w-md"
       style={{ minWidth: 400 }}
     >
       <div className="flex justify-between items-start mb-6">
@@ -96,7 +96,7 @@ const EditBoardModal: React.FC<EditBoardModalProps> = ({ board, onEdit }) => {
               />
               <button
                 type="button"
-                className="flex items-center justify-center text-light-gray hover:text-red-500"
+                className="flex items-center justify-center text-light-gray dark:text-light-gray hover:text-red-500"
                 aria-label="Remove column"
                 onClick={() => remove(idx)}
                 tabIndex={0}
