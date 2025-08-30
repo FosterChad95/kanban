@@ -10,6 +10,7 @@ import Button from "../../ui/Button/Button";
 import { useModal } from "../../../providers/ModalProvider";
 import AddTaskModal from "../../ui/Modal/AddTaskModal";
 import EditBoardModal from "../../ui/Modal/EditBoardModal";
+import type { BoardInput } from "../../../schemas/forms";
 import DeleteModal from "../../ui/Modal/DeleteModal";
 
 import type { Board as BaseBoard } from "../../../util/types";
@@ -64,8 +65,6 @@ const Header: React.FC<HeaderProps> = ({ boards, adminOnlyLogo = false }) => {
               }),
             });
             closeModal();
-            // Refresh the page data to reflect the new task
-            router.refresh();
           } catch (err) {
             console.error("Failed to create task:", err);
             // still close modal on error? keep open so user can retry — here we keep it open
@@ -86,10 +85,7 @@ const Header: React.FC<HeaderProps> = ({ boards, adminOnlyLogo = false }) => {
             { id: "3", name: "Done" },
           ],
         }}
-        onEdit={async (payload: {
-          name: string;
-          columns: { id?: string; name: string }[];
-        }) => {
+        onEdit={async (payload: BoardInput) => {
           try {
             if (!activeBoard.id) throw new Error("Missing board id");
 
@@ -140,7 +136,6 @@ const Header: React.FC<HeaderProps> = ({ boards, adminOnlyLogo = false }) => {
               body: JSON.stringify(prismaPayload),
             });
             closeModal();
-            router.refresh();
           } catch (err) {
             console.error("Failed to update board:", err);
           }
@@ -162,7 +157,6 @@ const Header: React.FC<HeaderProps> = ({ boards, adminOnlyLogo = false }) => {
               method: "DELETE",
             });
             closeModal();
-            router.refresh();
           } catch (err) {
             console.error("Failed to delete board:", err);
           }

@@ -4,17 +4,19 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Button from "../Button/Button";
 import TextField from "../TextField/TextField";
 import X from "../../../images/X";
-import { BoardSchema, BoardFormValues } from "../../../schemas/forms";
-
-import type { Board } from "@/util/types";
+import {
+  BoardSchema,
+  BoardFormValues,
+  type BoardInput,
+} from "../../../schemas/forms";
 
 const boardResolver = zodResolver(
   BoardSchema
 ) as unknown as Resolver<BoardFormValues>;
 
 type EditBoardModalProps = {
-  board: Board;
-  onEdit: (form: Board) => void;
+  board: BoardInput;
+  onEdit: (form: BoardInput) => void;
 };
 
 const EditBoardModal: React.FC<EditBoardModalProps> = ({ board, onEdit }) => {
@@ -28,8 +30,8 @@ const EditBoardModal: React.FC<EditBoardModalProps> = ({ board, onEdit }) => {
     resolver: boardResolver,
     defaultValues: {
       name: board.name,
-      columns: board.columns.map((col) => ({
-        id: col.id || crypto.randomUUID(),
+      columns: (board.columns ?? []).map((col) => ({
+        id: col.id,
         name: col.name,
       })),
     },
@@ -38,8 +40,8 @@ const EditBoardModal: React.FC<EditBoardModalProps> = ({ board, onEdit }) => {
   React.useEffect(() => {
     reset({
       name: board.name,
-      columns: board.columns.map((col) => ({
-        id: col.id || crypto.randomUUID(),
+      columns: (board.columns ?? []).map((col) => ({
+        id: col.id,
         name: col.name,
       })),
     });
@@ -51,14 +53,13 @@ const EditBoardModal: React.FC<EditBoardModalProps> = ({ board, onEdit }) => {
   });
 
   const onSubmit = (data: BoardFormValues) => {
-    const payload: Board = {
+    const payload: BoardInput = {
       name: data.name,
       columns: (data.columns ?? [])
         .filter((col) => (col.name ?? "").trim() !== "")
-        .map((col) => ({
-          id: col.id ?? crypto.randomUUID(),
-          name: col.name,
-        })),
+        .map((col) =>
+          col.id ? { id: col.id, name: col.name } : { name: col.name }
+        ),
     };
     onEdit(payload);
   };
@@ -111,7 +112,7 @@ const EditBoardModal: React.FC<EditBoardModalProps> = ({ board, onEdit }) => {
           type="button"
           variant="secondary"
           className="w-full mt-3 flex-col"
-          onClick={() => append({ id: crypto.randomUUID(), name: "" })}
+          onClick={() => append({ name: "" })}
         >
           + Add New Column
         </Button>

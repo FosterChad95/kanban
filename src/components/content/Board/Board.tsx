@@ -17,18 +17,19 @@ type ColumnType = {
 
 type BoardProps = {
   columns: ColumnType[];
+  boardName?: string;
   onEditBoard?: (form: {
     name: string;
-    columns: { id: string; name: string }[];
+    columns: { id?: string; name: string }[];
   }) => void;
 };
 
-const Board: React.FC<BoardProps> = ({ columns, onEditBoard }) => {
+const Board: React.FC<BoardProps> = ({ columns, boardName, onEditBoard }) => {
   const { openModal, closeModal } = useModal();
 
   const handleOpenEditBoard = () => {
     const boardData = {
-      name: "Board",
+      name: boardName ?? "Board",
       columns: columns.map((c) => ({ id: c.id, name: c.name })),
     };
     openModal(
