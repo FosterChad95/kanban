@@ -75,7 +75,17 @@ export async function getBoardsForUser(userId: string) {
 export async function getBoardById(id: string) {
   return prisma.board.findUnique({
     where: { id },
-    include: { columns: true },
+    include: {
+      columns: {
+        include: {
+          tasks: {
+            include: {
+              subtasks: true,
+            },
+          },
+        },
+      },
+    },
   });
 }
 
