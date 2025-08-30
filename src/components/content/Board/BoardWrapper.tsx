@@ -2,15 +2,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Board from "./Board";
+import type { Task as TaskType } from "@/util/types";
 
-type SubtaskType = { id: string; title: string; completed: boolean };
-type TaskType = {
-  id: string;
-  title: string;
-  description?: string | null;
-  columnId?: string;
-  subtasks: SubtaskType[];
-};
 type ColumnType = {
   id: string;
   name: string;
@@ -41,7 +34,18 @@ export default function BoardWrapper({
       id: c.id,
       name: c.name,
       color: c.color ?? getColor(i),
-      tasks: c.tasks ?? [],
+      tasks: (c.tasks || []).map((task: any) => ({
+        id: task.id,
+        title: task.title,
+        description: task.description ?? null,
+        columnId: (task.columnId ?? c.id ?? "") as string,
+        boardId: task.boardId ?? null,
+        subtasks: (task.subtasks || []).map((s: any) => ({
+          id: s.id,
+          title: s.title,
+          isCompleted: s.isCompleted ?? s.completed ?? false,
+        })),
+      })),
     }))
   );
   const router = useRouter();
@@ -108,17 +112,18 @@ export default function BoardWrapper({
           name: col.name,
           color: getColor(idx),
           tasks:
-            (col.tasks || []).map((task: any) => ({
+            ((col.tasks || []).map((task: any) => ({
               id: task.id,
               title: task.title,
-              description: task.description,
-              columnId: task.columnId,
+              description: task.description ?? null,
+              columnId: (task.columnId ?? col.id ?? "") as string,
+              boardId: task.boardId ?? null,
               subtasks: (task.subtasks || []).map((s: any) => ({
                 id: s.id,
                 title: s.title,
-                completed: s.isCompleted,
+                isCompleted: s.isCompleted ?? s.completed ?? false,
               })),
-            })) ?? [],
+            })) as TaskType[]) ?? [],
         })) ?? [];
 
       setColumns(mapped);
