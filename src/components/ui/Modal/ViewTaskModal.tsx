@@ -46,12 +46,15 @@ const ViewTaskModal: React.FC<ViewTaskModalProps> = ({
 
   // Keep form state in sync with props if modal is reopened with new data
   useEffect(() => {
-    reset(mapTaskToViewTaskForm(task));
-  }, [task, reset]);
+    if (!isEdit) {
+      reset(mapTaskToViewTaskForm(task));
+    }
+  }, [task, reset, isEdit]);
 
-  const { fields } = useFieldArray<ViewTaskFormValues, "subtasks">({
+  const { fields } = useFieldArray<ViewTaskFormValues, "subtasks", "fieldId">({
     control,
     name: "subtasks",
+    keyName: "fieldId",
   });
 
   const formValues = watch();
@@ -60,8 +63,11 @@ const ViewTaskModal: React.FC<ViewTaskModalProps> = ({
     ? formValues.subtasks.filter((s) => s.completed).length
     : 0;
 
-  const handleSubtaskChange = (id: string | number, checked: boolean) => {
-    const idx = fields.findIndex((s) => s.id === id);
+  const handleSubtaskChange = (val: string | number, checked: boolean) => {
+    const id = String(val);
+    const idx = fields.findIndex(
+      (s) => s.id === id || (s as any).fieldId === id
+    );
     if (idx !== -1) {
       setValue(`subtasks.${idx}.completed`, checked, { shouldDirty: true });
     }
@@ -148,7 +154,7 @@ const ViewTaskModal: React.FC<ViewTaskModalProps> = ({
           <Checkbox
             checkboxes={fields.map((subtask, idx) => ({
               label: subtask.title,
-              value: subtask.id,
+              value: subtask.id ?? (subtask as any).fieldId,
               checked: formValues.subtasks?.[idx]?.completed || false,
               disabled: !isEdit,
             }))}

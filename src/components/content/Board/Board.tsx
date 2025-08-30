@@ -7,12 +7,14 @@ import { useModal } from "../../../providers/ModalProvider";
 import EditBoardModal from "../../ui/Modal/EditBoardModal";
 
 import randomColor from "randomcolor";
+import type { Task as TaskType } from "@/util/types";
+import type { BoardInput } from "../../../schemas/forms";
 
 type ColumnType = {
   id: string;
   name: string;
   color: string;
-  tasks: any[];
+  tasks: TaskType[];
 };
 
 type BoardProps = {
@@ -28,16 +30,19 @@ const Board: React.FC<BoardProps> = ({ columns, boardName, onEditBoard }) => {
   const { openModal, closeModal } = useModal();
 
   const handleOpenEditBoard = () => {
-    const boardData = {
+    const boardData: BoardInput = {
       name: boardName ?? "Board",
-      columns: columns.map((c) => ({ id: c.id, name: c.name })),
+      columns: columns.map((c) => ({
+        id: c.id,
+        name: c.name,
+      })),
     };
     openModal(
       <EditBoardModal
         board={boardData}
         onEdit={(form) => {
           if (onEditBoard) {
-            onEditBoard(form);
+            onEditBoard({ ...form, columns: form.columns ?? [] });
           }
           closeModal();
         }}
