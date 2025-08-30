@@ -1,13 +1,14 @@
+import React from "react";
+import MainBoardLayout from "../../components/MainBoardLayout";
 import { getBoardsForUser } from "../../queries/boardQueries";
 import { getCurrentUser } from "../../lib/auth";
 import { redirect } from "next/navigation";
 
-/**
- * Dashboard index: fetch user's boards and redirect to the first board.
- * The actual board UI is rendered in app/dashboard/[boardId]/page.tsx wrapped
- * by app/dashboard/layout.tsx (MainBoardLayout).
- */
-export default async function DashboardIndexPage() {
+export default async function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const user = await getCurrentUser();
 
   if (!user) {
@@ -49,6 +50,5 @@ export default async function DashboardIndexPage() {
     redirect("/dashboard/create-board");
   }
 
-  // Redirect to the first available board
-  redirect(`/dashboard/${boards[0].id}`);
+  return <MainBoardLayout boards={boards}>{children}</MainBoardLayout>;
 }

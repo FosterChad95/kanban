@@ -5,6 +5,7 @@ import EyeSlashIcon from "@/components/ui/Icon/EyeSlashIcon";
 import SettingsModal from "@/components/ui/Modal/SettingsModal";
 import { motion, AnimatePresence } from "framer-motion";
 import IconBoardIcon from "@/components/ui/Icon/IconBoardIcon";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useModal } from "@/providers/ModalProvider";
 import AddBoardModal from "@/components/ui/Modal/AddBoardModal";
@@ -17,14 +18,12 @@ interface BoardProps {
 
 interface SidebarProps {
   boards?: BoardProps[];
-  onBoardClick?: (id: string) => void;
   visible: boolean;
   onHideSidebar: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
   boards = [],
-  onBoardClick,
   visible,
   onHideSidebar,
 }) => {
@@ -78,15 +77,16 @@ const Sidebar: React.FC<SidebarProps> = ({
               </h2>
               <div className="flex flex-col gap-2 mt-4">
                 {boards.map((board) => (
-                  <Button
+                  <Link
                     key={board.id}
-                    icon={<IconBoardIcon />}
-                    variant="secondary"
-                    className="rounded-tr-[100px] justify-start rounded-br-[100px] rounded-tl-none rounded-bl-none w-full pl-8 py-[14px] hover:bg-main-purple transition-all hover:text-white"
-                    onClick={() => onBoardClick?.(board.id)}
+                    href={`/dashboard/${board.id}`}
+                    className="flex items-center gap-3 rounded-tr-[100px] justify-start rounded-br-[100px] rounded-tl-none rounded-bl-none w-full pl-8 py-[14px] hover:bg-main-purple transition-all hover:text-white"
                   >
-                    {board.name}
-                  </Button>
+                    <span className="inline-flex items-center justify-center mr-2">
+                      <IconBoardIcon />
+                    </span>
+                    <span className="truncate">{board.name}</span>
+                  </Link>
                 ))}
                 <Button
                   icon={<IconBoardIcon />}

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { signOut } from "next-auth/react";
 import LogoMobile from "../../../images/LogoMobile";
 import Logo from "../../../images/Logo";
@@ -31,8 +31,11 @@ const Header: React.FC<HeaderProps> = ({ boards, adminOnlyLogo = false }) => {
   const [ellipsisOpen, setEllipsisOpen] = useState(false);
   const ellipsisRef = React.useRef<HTMLDivElement>(null);
 
-  // Find the active board
-  const activeBoard = boards.find((b) => b.active) ||
+  // Find the active board (prefer boardId from the URL when present)
+  const params = useParams();
+  const currentBoardId = (params as any)?.boardId;
+  const activeBoard = boards.find((b) => b.id === currentBoardId) ||
+    boards.find((b) => b.active) ||
     boards[0] || { name: "Board", columns: [] };
 
   // Handlers for modals
@@ -219,8 +222,7 @@ const Header: React.FC<HeaderProps> = ({ boards, adminOnlyLogo = false }) => {
             aria-label="Open board menu"
           >
             <span className="font-bold text-lg text-black dark:text-light-gray select-none">
-              {boards.find((b) => b.active)?.name ||
-                (boards[0]?.name ?? "Board")}
+              {activeBoard?.name ?? "Board"}
             </span>
             <svg
               className={`w-4 h-4 ml-1 transition-transform ${
@@ -242,7 +244,7 @@ const Header: React.FC<HeaderProps> = ({ boards, adminOnlyLogo = false }) => {
         {/* Desktop: Active Board Name */}
         <div className="hidden md:flex items-center ml-6 flex-grow">
           <span className="font-bold text-lg text-black dark:text-light-gray select-none mr-4">
-            {boards.find((b) => b.active)?.name || (boards[0]?.name ?? "Board")}
+            {activeBoard?.name ?? "Board"}
           </span>
         </div>
 
@@ -360,31 +362,38 @@ const Header: React.FC<HeaderProps> = ({ boards, adminOnlyLogo = false }) => {
                 ALL BOARDS ({boards.length})
               </div>
               <ul className="flex flex-col gap-2">
-                {boards.map((board) => (
-                  <li key={board.name}>
-                    <Button
-                      className={`flex items-center gap-3 w-full px-4 py-2 rounded-full text-left ${
-                        board.active
-                          ? "bg-main-purple text-white"
-                          : "text-gray-500 hover:bg-gray-100"
-                      }`}
-                      variant="secondary"
-                    >
-                      <IconBoardIcon
-                        className={`w-5 h-5 ${
-                          board.active ? "text-white" : "text-main-purple"
+                {boards.map((board) => {
+                  const isActive = board.id === currentBoardId || board.active;
+                  return (
+                    <li key={board.id}>
+                      <Button
+                        className={`flex items-center gap-3 w-full px-4 py-2 rounded-full text-left ${
+                          isActive
+                            ? "bg-main-purple text-white"
+                            : "text-gray-500 hover:bg-gray-100"
                         }`}
-                      />
-                      <span
-                        className={`font-medium ${
-                          board.active ? "text-white" : "text-main-purple"
-                        }`}
+                        variant="secondary"
+                        onClick={() => {
+                          router.push(`/dashboard/${board.id}`);
+                          setMobileMenuOpen(false);
+                        }}
                       >
-                        {board.name}
-                      </span>
-                    </Button>
-                  </li>
-                ))}
+                        <IconBoardIcon
+                          className={`w-5 h-5 ${
+                            isActive ? "text-white" : "text-main-purple"
+                          }`}
+                        />
+                        <span
+                          className={`font-medium ${
+                            isActive ? "text-white" : "text-main-purple"
+                          }`}
+                        >
+                          {board.name}
+                        </span>
+                      </Button>
+                    </li>
+                  );
+                })}
                 <li>
                   <Button
                     className="flex items-center gap-3 w-full px-4 py-2 rounded-full text-main-purple hover:bg-main-purple/10 font-medium"
