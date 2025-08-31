@@ -33,7 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const numberBoards = boards.length;
   const router = useRouter();
   const params = useParams();
-  const currentBoardId = (params as any)?.boardId;
+  const currentBoardId = (params as { boardId?: string })?.boardId;
   const { openModal, closeModal } = useModal();
 
   // Handle fade-out before hiding sidebar

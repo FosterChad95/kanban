@@ -23,17 +23,26 @@ export async function GET() {
             },
           },
         },
+        boards: {
+          include: {
+            board: {
+              select: { id: true, name: true },
+            },
+          },
+        },
       },
     });
 
     // Map users to array of { id, name }
-    const teamsWithUsers = teams.map((team) => ({
+    // Map boards to array of { id, name }
+    const teamsWithUsersAndBoards = teams.map((team) => ({
       id: team.id,
       name: team.name,
       users: team.users.map((ut) => ut.user),
+      boards: team.boards.map((tb) => tb.board),
     }));
 
-    return NextResponse.json(teamsWithUsers, { status: 200 });
+    return NextResponse.json(teamsWithUsersAndBoards, { status: 200 });
   } catch (err) {
     console.error("GET /api/teams error:", err);
     return NextResponse.json(

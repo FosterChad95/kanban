@@ -40,6 +40,7 @@ const Board: React.FC<BoardProps> = ({ columns, boardName, onEditBoard }) => {
     openModal(
       <EditBoardModal
         board={boardData}
+        teams={[]} // Pass empty array since teams are not used here
         onEdit={(form) => {
           if (onEditBoard) {
             onEditBoard({ ...form, columns: form.columns ?? [] });

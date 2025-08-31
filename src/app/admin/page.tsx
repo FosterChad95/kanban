@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import AdminLayout from "@/components/content/AdminLayout";
+import BoardsSection from "@/components/admin/BoardsSection";
 import TeamsSection from "@/components/admin/TeamsSection";
 import UsersSection from "@/components/admin/UsersSection";
 
@@ -11,6 +12,7 @@ export default function AdminPage() {
       <p className="mb-8 text-lg text-gray-600 dark:text-gray-300">
         Manage teams and users for your organization.
       </p>
+      <BoardsSection />
       <TeamsSection />
       <UsersSection />
     </AdminLayout>
