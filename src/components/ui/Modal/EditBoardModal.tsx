@@ -10,16 +10,31 @@ import {
   type BoardInput,
 } from "../../../schemas/forms";
 
+type TeamOption = {
+  id: string;
+  name: string;
+};
+
 const boardResolver = zodResolver(
   BoardSchema
 ) as unknown as Resolver<BoardFormValues>;
 
 type EditBoardModalProps = {
-  board: BoardInput;
-  onEdit: (form: BoardInput) => void;
+  board: BoardInput & { teamIds?: string[] };
+  onEdit: (form: BoardInput & { teamIds?: string[] }) => void;
+  /// Make teams optional
+  teams?: TeamOption[];
 };
 
-const EditBoardModal: React.FC<EditBoardModalProps> = ({ board, onEdit }) => {
+const EditBoardModal: React.FC<EditBoardModalProps> = ({
+  board,
+  onEdit,
+  teams = [],
+}) => {
+  const [selectedTeamIds, setSelectedTeamIds] = React.useState<string[]>(
+    board.teamIds || []
+  );
+
   const {
     register,
     handleSubmit,
@@ -45,6 +60,7 @@ const EditBoardModal: React.FC<EditBoardModalProps> = ({ board, onEdit }) => {
         name: col.name,
       })),
     });
+    setSelectedTeamIds(board.teamIds || []);
   }, [board, reset]);
 
   const { fields, append, remove } = useFieldArray<BoardFormValues, "columns">({
@@ -52,14 +68,23 @@ const EditBoardModal: React.FC<EditBoardModalProps> = ({ board, onEdit }) => {
     name: "columns",
   });
 
+  const toggleTeamSelection = (teamId: string) => {
+    setSelectedTeamIds((prev) =>
+      prev.includes(teamId)
+        ? prev.filter((id) => id !== teamId)
+        : [...prev, teamId]
+    );
+  };
+
   const onSubmit = (data: BoardFormValues) => {
-    const payload: BoardInput = {
+    const payload: BoardInput & { teamIds?: string[] } = {
       name: data.name,
       columns: (data.columns ?? [])
         .filter((col) => (col.name ?? "").trim() !== "")
         .map((col) =>
           col.id ? { id: col.id, name: col.name } : { name: col.name }
         ),
+      teamIds: selectedTeamIds,
     };
     onEdit(payload);
   };
@@ -116,6 +141,30 @@ const EditBoardModal: React.FC<EditBoardModalProps> = ({ board, onEdit }) => {
         >
           + Add New Column
         </Button>
+      </div>
+      <div className="mb-4">
+        <label className="block text-xs font-bold mb-2">
+          Teams with Access
+        </label>
+        <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto border border-gray-300 dark:border-gray-700 rounded p-2 bg-white dark:bg-gray-900">
+          {teams.map((team) => {
+            const selected = selectedTeamIds.includes(team.id);
+            return (
+              <button
+                key={team.id}
+                type="button"
+                onClick={() => toggleTeamSelection(team.id)}
+                className={`px-3 py-1 rounded-full border ${
+                  selected
+                    ? "bg-main-purple text-white border-main-purple"
+                    : "bg-gray-200 dark:bg-gray-700 border-transparent text-gray-700 dark:text-gray-300"
+                } focus:outline-none focus:ring-2 focus:ring-main-purple`}
+              >
+                {team.name}
+              </button>
+            );
+          })}
+        </div>
       </div>
       <Button type="submit" className="w-full flex-col" variant="primary-l">
         Save Changes

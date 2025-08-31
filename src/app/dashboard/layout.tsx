@@ -20,7 +20,7 @@ export default async function DashboardLayout({
     redirect("/admin");
   }
 
-  const dbBoards = await getBoardsForUser(user.id);
+  const dbBoards = await getBoardsForUser({ id: user.id, role: user.role });
 
   const boards = dbBoards.map((board) => ({
     id: board.id,

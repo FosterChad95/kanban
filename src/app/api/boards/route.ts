@@ -12,7 +12,7 @@ export async function GET() {
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const boards = await getBoardsForUser(user.id);
+    const boards = await getBoardsForUser({ id: user.id, role: user.role });
     return NextResponse.json(boards);
   } catch (err) {
     console.error("GET /api/boards error:", err);

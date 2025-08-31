@@ -6,17 +6,32 @@ import TextField from "../TextField/TextField";
 import X from "../../../images/X";
 import { BoardSchema, BoardFormValues } from "../../../schemas/forms";
 
+type TeamOption = {
+  id: string;
+  name: string;
+};
+
 type Board = {
   name: string;
   columns: { id: string; name: string }[];
+  teamIds?: string[];
 };
 
 type AddBoardModalProps = {
-  onCreate: (form: { name: string; columns: { name: string }[] }) => void;
+  onCreate: (form: {
+    name: string;
+    columns: { name: string }[];
+    teamIds: string[];
+  }) => void;
   board?: Board;
-  onEdit?: (form: { name: string; columns: { name: string }[] }) => void;
+  onEdit?: (form: {
+    name: string;
+    columns: { name: string }[];
+    teamIds: string[];
+  }) => void;
   onDelete?: () => void;
   defaultEditMode?: boolean;
+  teams?: TeamOption[];
 };
 
 const boardResolver = zodResolver(
@@ -29,9 +44,13 @@ const AddBoardModal: React.FC<AddBoardModalProps> = ({
   onEdit,
   onDelete,
   defaultEditMode = false,
+  teams = [],
 }) => {
   const [isEdit, setIsEdit] = useState(defaultEditMode || !board); // If board is provided, start in view mode or defaultEditMode
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>(
+    board?.teamIds || []
+  );
 
   const {
     register,
@@ -67,6 +86,7 @@ const AddBoardModal: React.FC<AddBoardModalProps> = ({
           name: col.name,
         })),
       });
+      setSelectedTeamIds(board.teamIds || []);
       setIsEdit(defaultEditMode);
     }
   }, [board, reset, defaultEditMode]);
@@ -82,6 +102,7 @@ const AddBoardModal: React.FC<AddBoardModalProps> = ({
       columns: (data.columns ?? [])
         .filter((col) => (col.name ?? "").trim() !== "")
         .map((col) => ({ name: col.name })),
+      teamIds: selectedTeamIds,
     };
     if (board && isEdit && onEdit) {
       onEdit(payload);
@@ -89,6 +110,14 @@ const AddBoardModal: React.FC<AddBoardModalProps> = ({
     } else {
       onCreate(payload);
     }
+  };
+
+  const toggleTeamSelection = (teamId: string) => {
+    setSelectedTeamIds((prev) =>
+      prev.includes(teamId)
+        ? prev.filter((id) => id !== teamId)
+        : [...prev, teamId]
+    );
   };
 
   return (
@@ -198,6 +227,30 @@ const AddBoardModal: React.FC<AddBoardModalProps> = ({
         >
           + Add New Column
         </Button>
+      </div>
+      <div className="mb-4">
+        <label className="block text-xs font-bold mb-2 text-black dark:text-light-gray">
+          Teams with Access
+        </label>
+        <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto border border-gray-300 dark:border-gray-700 rounded p-2 bg-white dark:bg-gray-900">
+          {teams.map((team) => {
+            const selected = selectedTeamIds.includes(team.id);
+            return (
+              <button
+                key={team.id}
+                type="button"
+                onClick={() => toggleTeamSelection(team.id)}
+                className={`px-3 py-1 rounded-full border ${
+                  selected
+                    ? "bg-main-purple text-white border-main-purple"
+                    : "bg-gray-200 dark:bg-gray-700 border-transparent text-gray-700 dark:text-gray-300"
+                } focus:outline-none focus:ring-2 focus:ring-main-purple`}
+              >
+                {team.name}
+              </button>
+            );
+          })}
+        </div>
       </div>
       {(isEdit || !board) && (
         <Button type="submit" className="w-full" variant="primary-l">

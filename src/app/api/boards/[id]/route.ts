@@ -3,17 +3,35 @@ import {
   getBoardById,
   updateBoard,
   deleteBoard,
+  getBoardsForUser,
 } from "../../../../queries/boardQueries";
+import { getCurrentUser } from "../../../../lib/auth";
 
 /**
  * GET /api/boards/:id
- * Returns a single board by id.
+ * Returns a single board by id, only if the user has access.
  */
 export async function GET(
   _req: Request,
   { params }: { params: { id: string } }
 ) {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Get all board IDs the user can access
+    const accessibleBoards = await getBoardsForUser({
+      id: user.id,
+      role: user.role,
+    });
+    const accessibleBoardIds = accessibleBoards.map((b) => b.id);
+
+    if (!accessibleBoardIds.includes(params.id)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const board = await getBoardById(params.id);
     if (!board) {
       return NextResponse.json({ error: "Board not found" }, { status: 404 });

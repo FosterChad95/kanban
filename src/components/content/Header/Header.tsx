@@ -33,8 +33,10 @@ const Header: React.FC<HeaderProps> = ({ boards, adminOnlyLogo = false }) => {
   const ellipsisRef = React.useRef<HTMLDivElement>(null);
 
   // Find the active board (prefer boardId from the URL when present)
-  const params = useParams();
-  const currentBoardId = (params as any)?.boardId;
+  // Type for params from useParams
+  type Params = { boardId?: string };
+  const params = useParams() as Params;
+  const currentBoardId = params?.boardId;
   const activeBoard = boards.find((b) => b.id === currentBoardId) ||
     boards.find((b) => b.active) ||
     boards[0] || { name: "Board", columns: [] };
@@ -79,12 +81,9 @@ const Header: React.FC<HeaderProps> = ({ boards, adminOnlyLogo = false }) => {
       <EditBoardModal
         board={{
           name: activeBoard.name,
-          columns: activeBoard.columns || [
-            { id: "1", name: "Todo" },
-            { id: "2", name: "Doing" },
-            { id: "3", name: "Done" },
-          ],
+          columns: activeBoard.columns || [],
         }}
+        teams={[]} // TODO: Replace with actual teams when available
         onEdit={async (payload: BoardInput) => {
           try {
             if (!activeBoard.id) throw new Error("Missing board id");

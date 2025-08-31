@@ -62,6 +62,20 @@ const EditTeamModal: React.FC<EditTeamModalProps> = ({
   const [selectedBoards, setSelectedBoards] =
     React.useState<BoardOption[]>(initialBoards);
 
+  // Reset selectedBoards when modal opens or initialBoards changes
+  React.useEffect(() => {
+    if (isOpen) {
+      setSelectedBoards(initialBoards);
+    }
+  }, [isOpen, initialBoards]);
+
+  // Reset users when modal opens or initialUsers changes
+  React.useEffect(() => {
+    if (isOpen) {
+      setValue("users", initialUsers);
+    }
+  }, [isOpen, initialUsers, setValue]);
+
   // Type guard to ensure only UserOption[]
   const filterUserOptions = (arr: unknown): UserOption[] =>
     Array.isArray(arr)
