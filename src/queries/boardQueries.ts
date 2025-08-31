@@ -5,7 +5,7 @@ import prisma from "../lib/prisma";
  * Get all boards.
  */
 export async function getAllBoards() {
-  return prisma.board.findMany({
+  const boards = await prisma.board.findMany({
     include: {
       columns: {
         include: {
@@ -16,13 +16,31 @@ export async function getAllBoards() {
           },
         },
       },
+      teams: {
+        include: {
+          team: true,
+        },
+      },
+      users: {
+        include: {
+          user: true,
+        },
+      },
     },
   });
+
+  // Normalize teams to simple { id, name } shape for consumers
+  return boards.map((b) => ({
+    ...b,
+    teams: Array.isArray(b.teams)
+      ? b.teams.map((tb) => ({ id: tb.team.id, name: tb.team.name }))
+      : [],
+  }));
 }
 
 /**
  * Get all boards for a user: boards from user's teams and user's private boards.
- * @param userId User ID
+ * @param user User object with id and role
  */
 export async function getBoardsForUser(user: { id: string; role: string }) {
   if (user.role === "ADMIN") {
@@ -67,10 +85,26 @@ export async function getBoardsForUser(user: { id: string; role: string }) {
           },
         },
       },
+      teams: {
+        include: {
+          team: true,
+        },
+      },
+      users: {
+        include: {
+          user: true,
+        },
+      },
     },
   });
 
-  return boards;
+  // Normalize teams to simple { id, name } shape for consumers
+  return boards.map((b) => ({
+    ...b,
+    teams: Array.isArray(b.teams)
+      ? b.teams.map((tb) => ({ id: tb.team.id, name: tb.team.name }))
+      : [],
+  }));
 }
 
 /**
@@ -78,7 +112,7 @@ export async function getBoardsForUser(user: { id: string; role: string }) {
  * @param id Board ID
  */
 export async function getBoardById(id: string) {
-  return prisma.board.findUnique({
+  const board = await prisma.board.findUnique({
     where: { id },
     include: {
       columns: {
@@ -90,8 +124,32 @@ export async function getBoardById(id: string) {
           },
         },
       },
+      teams: {
+        include: {
+          team: true,
+        },
+      },
+      users: {
+        include: {
+          user: true,
+        },
+      },
+      Task: {
+        include: {
+          subtasks: true,
+        },
+      },
     },
   });
+
+  if (!board) return null;
+
+  return {
+    ...board,
+    teams: Array.isArray(board.teams)
+      ? board.teams.map((tb) => ({ id: tb.team.id, name: tb.team.name }))
+      : [],
+  };
 }
 
 /**
@@ -128,16 +186,13 @@ export async function updateBoard(id: string, data: Prisma.BoardUpdateInput) {
 
     // Sync teams (TeamBoard join table) if teamIds provided
     if (Array.isArray(payload.teamIds)) {
-      // Remove all existing links for this board, then recreate from incoming list
+      // Remove all existing links for this board
       await tx.teamBoard.deleteMany({ where: { boardId: id } });
-      if (payload.teamIds.length > 0) {
-        // createMany with skipDuplicates to be safe
-        await tx.teamBoard.createMany({
-          data: payload.teamIds.map((teamId: string) => ({
-            teamId,
-            boardId: id,
-          })),
-          skipDuplicates: true,
+      // Recreate links individually to ensure relational creation works reliably
+      for (const teamId of payload.teamIds) {
+        if (!teamId) continue;
+        await tx.teamBoard.create({
+          data: { teamId, boardId: id },
         });
       }
     }

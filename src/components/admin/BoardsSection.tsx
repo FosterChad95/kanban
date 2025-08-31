@@ -328,8 +328,27 @@ export default function BoardsSection() {
                   <div className="flex gap-2">
                     <button
                       className="text-blue-600 hover:underline"
-                      onClick={() => {
-                        dispatchBoards({ type: "SHOW_EDIT", board });
+                      onClick={async () => {
+                        try {
+                          const res = await fetch(`/api/boards/${board.id}`);
+                          if (res.ok) {
+                            const data = await res.json();
+                            dispatchBoards({ type: "SHOW_EDIT", board: data });
+                          } else {
+                            console.error("Failed to fetch board for edit");
+                            dispatchBoards({
+                              type: "SET_ERROR",
+                              error: "Failed to fetch board for edit.",
+                            });
+                          }
+                        } catch (err) {
+                          console.error("Fetch board for edit error:", err);
+                          dispatchBoards({
+                            type: "SET_ERROR",
+                            error:
+                              "An error occurred while fetching board for edit.",
+                          });
+                        }
                       }}
                     >
                       Edit
