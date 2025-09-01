@@ -149,6 +149,7 @@ export async function getBoardById(id: string) {
     teams: Array.isArray(board.teams)
       ? board.teams.map((tb) => ({ id: tb.team.id, name: tb.team.name }))
       : [],
+    hasTeam: Array.isArray(board.teams) && board.teams.length > 0,
   };
 }
 

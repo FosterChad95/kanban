@@ -10,9 +10,10 @@ import { redirect } from "next/navigation";
 export default async function BoardPage({
   params,
 }: {
-  params: { boardId: string };
+  params: Promise<{ boardId: string }>;
 }) {
-  const { boardId } = params;
+  const resolvedParams = await params;
+  const { boardId } = resolvedParams;
 
   const board = await getBoardById(boardId);
 
