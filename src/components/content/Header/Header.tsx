@@ -18,6 +18,7 @@ import type { Board as BaseBoard } from "../../../util/types";
 interface Board extends BaseBoard {
   id?: string;
   active: boolean;
+  hasTeam?: boolean;
 }
 
 interface HeaderProps {
@@ -280,8 +281,18 @@ const Header: React.FC<HeaderProps> = ({ boards, adminOnlyLogo = false }) => {
                   Edit Board
                 </button>
                 <button
-                  className="text-red-500 px-4 py-2 text-left hover:bg-red-50"
-                  onClick={handleDeleteBoard}
+                  className={`px-4 py-2 text-left ${
+                    activeBoard.hasTeam
+                      ? "text-gray-400 cursor-not-allowed"
+                      : "text-red-500 hover:bg-red-50"
+                  }`}
+                  onClick={activeBoard.hasTeam ? undefined : handleDeleteBoard}
+                  title={
+                    activeBoard.hasTeam
+                      ? "Boards that belong to a team cannot be deleted."
+                      : undefined
+                  }
+                  disabled={activeBoard.hasTeam}
                 >
                   Delete Board
                 </button>

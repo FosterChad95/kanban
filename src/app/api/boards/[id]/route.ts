@@ -73,13 +73,24 @@ export async function PUT(
  */
 export async function DELETE(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params;
   try {
-    await deleteBoard(params.id);
+    const board = await getBoardById(resolvedParams.id);
+    if (!board) {
+      return NextResponse.json({ error: "Board not found" }, { status: 404 });
+    }
+    if (board.teams && board.teams.length > 0) {
+      return NextResponse.json(
+        { error: "Cannot delete a board that belongs to a team" },
+        { status: 403 }
+      );
+    }
+    await deleteBoard(resolvedParams.id);
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error(`DELETE /api/boards/${params.id} error:`, err);
+    console.error(`DELETE /api/boards/${resolvedParams.id} error:`, err);
     return NextResponse.json(
       { error: "Failed to delete board" },
       { status: 500 }
