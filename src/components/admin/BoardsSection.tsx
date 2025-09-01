@@ -96,8 +96,8 @@ export default function BoardsSection() {
         error={addError}
         loadingText="Creating..."
       >
-        <AddBoardModal 
-          teams={teams} 
+        <AddBoardModal
+          teams={teams}
           onCreate={handleCreateBoard}
           showTeamAccess={true} // Show team access in admin context
         />
@@ -117,7 +117,7 @@ export default function BoardsSection() {
               id: editingBoard.id,
               name: editingBoard.name,
               columns: editingBoard.columns || [],
-              teamIds: editingBoard.teams?.map(t => t.id) || [],
+              teamIds: editingBoard.teams?.map((t) => t.id) || [],
             }}
             teams={teams}
             onEdit={handleUpdateBoard}

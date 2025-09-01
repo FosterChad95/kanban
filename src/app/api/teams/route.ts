@@ -1,9 +1,9 @@
 import prisma from "@/lib/prisma";
-import { 
-  withAdminAuth, 
-  withAdminAuthAndValidation, 
-  withErrorHandling, 
-  createSuccessResponse 
+import {
+  withAdminAuth,
+  withAdminAuthAndValidation,
+  withErrorHandling,
+  createSuccessResponse,
 } from "@/lib/api-utils";
 import { CreateTeamSchema } from "@/schemas/api";
 

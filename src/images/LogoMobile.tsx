@@ -1,6 +1,10 @@
 import React from "react";
 
-const LogoMobile = () => {
+import { useTheme } from "@/providers/ThemeProvider";
+
+const LogoMobile: React.FC = () => {
+  const { theme } = useTheme();
+  const darkMode = theme === "dark";
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -9,7 +13,12 @@ const LogoMobile = () => {
       viewBox="0 0 24 25"
       fill="none"
     >
-      <rect width="6" height="25" rx="2" fill="#635FC7" />
+      <rect
+        width="6"
+        height="25"
+        rx="2"
+        fill={darkMode ? "#FFFFFF" : "#635FC7"}
+      />
       <rect opacity="0.75" x="9" width="6" height="25" rx="2" fill="#635FC7" />
       <rect opacity="0.5" x="18" width="6" height="25" rx="2" fill="#635FC7" />
     </svg>

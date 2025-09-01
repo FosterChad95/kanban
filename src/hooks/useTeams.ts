@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
-import { useCrudOperations, createApiOperations } from './useCrudOperations';
-import { AdminTeam, CreateTeamForm, EditTeamForm } from '@/types/admin';
+import { useEffect } from "react";
+import { useCrudOperations, createApiOperations } from "./useCrudOperations";
+import { AdminTeam, CreateTeamForm, EditTeamForm } from "@/types/admin";
 
-const teamsApi = createApiOperations('/api/teams');
+const teamsApi = createApiOperations("/api/teams");
 
 /**
  * Hook for managing teams in admin section
@@ -21,13 +21,14 @@ export function useTeams() {
   const fetchTeams = async () => {
     actions.setLoading(true);
     actions.setError(null);
-    
+
     try {
       const teams = await teamsApi.fetchAll<AdminTeam>();
+
       actions.setItems(teams);
     } catch (error) {
       actions.setError(
-        error instanceof Error ? error.message : 'Failed to fetch teams'
+        error instanceof Error ? error.message : "Failed to fetch teams"
       );
     } finally {
       actions.setLoading(false);
@@ -45,14 +46,14 @@ export function useTeams() {
       // Transform form data to API expected format
       const apiData = {
         name: formData.teamName,
-        userIds: formData.users.map(u => u.id),
+        userIds: formData.users.map((u) => u.id),
       };
-      
+
       const newTeam = await teamsApi.create<typeof apiData, AdminTeam>(apiData);
       actions.addItem(newTeam);
     } catch (error) {
       actions.setAddError(
-        error instanceof Error ? error.message : 'Failed to create team'
+        error instanceof Error ? error.message : "Failed to create team"
       );
     } finally {
       actions.setAdding(false);
@@ -73,15 +74,15 @@ export function useTeams() {
         users: formData.users,
         boards: formData.boards,
       };
-      
+
       const updatedTeam = await teamsApi.update<typeof apiData, AdminTeam>(
-        teamId, 
+        teamId,
         apiData
       );
       actions.updateItem(updatedTeam);
     } catch (error) {
       actions.setEditError(
-        error instanceof Error ? error.message : 'Failed to update team'
+        error instanceof Error ? error.message : "Failed to update team"
       );
     } finally {
       actions.setEditing(false);
@@ -100,7 +101,7 @@ export function useTeams() {
       actions.removeItem(teamId);
     } catch (error) {
       actions.setDeleteError(
-        error instanceof Error ? error.message : 'Failed to delete team'
+        error instanceof Error ? error.message : "Failed to delete team"
       );
     } finally {
       actions.setDeleting(false);
@@ -112,24 +113,24 @@ export function useTeams() {
     teams: state.items,
     loading: state.loading,
     error: state.error,
-    
+
     // Add state
     showAdd: state.showAdd,
     adding: state.adding,
     addError: state.addError,
-    
-    // Edit state  
+
+    // Edit state
     showEdit: state.showEdit,
     editingTeam: state.editingItem,
     editing: state.editing,
     editError: state.editError,
-    
+
     // Delete state
     showDelete: state.showDelete,
     deletingTeam: state.deletingItem,
     deleting: state.deleting,
     deleteError: state.deleteError,
-    
+
     // Actions
     showAddModal: actions.showAdd,
     hideAddModal: actions.hideAdd,
@@ -137,7 +138,7 @@ export function useTeams() {
     hideEditModal: actions.hideEdit,
     showDeleteModal: actions.showDelete,
     hideDeleteModal: actions.hideDelete,
-    
+
     // CRUD operations
     createTeam,
     updateTeam,

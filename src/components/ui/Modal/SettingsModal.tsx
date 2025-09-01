@@ -4,13 +4,19 @@ import { signOut, useSession } from "next-auth/react";
 import Modal from "./Modal";
 import Button from "../Button/Button";
 import React, { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface SettingsModalProps {
   isOpen: boolean;
+  darkMode?: boolean;
   onClose: () => void;
 }
 
-const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
+const SettingsModal: React.FC<SettingsModalProps> = ({
+  isOpen,
+  onClose,
+  darkMode,
+}) => {
   const session = useSession();
   const user = session.data?.user;
 
@@ -36,7 +42,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <div className="flex flex-col items-center">
+      <div
+        className={cn("flex flex-col items-center", {
+          "text-white": darkMode,
+        })}
+      >
         <h2 className="heading-large mb-6 text-main-purple">Settings</h2>
         {user && (
           <div className="mb-6 w-full text-center">
