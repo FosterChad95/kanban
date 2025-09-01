@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useForm, useFieldArray, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Button from "../Button/Button";
@@ -32,6 +32,7 @@ type AddBoardModalProps = {
   onDelete?: () => void;
   defaultEditMode?: boolean;
   teams?: TeamOption[];
+  showTeamAccess?: boolean; // Only show team selection in admin context
 };
 
 const boardResolver = zodResolver(
@@ -45,12 +46,27 @@ const AddBoardModal: React.FC<AddBoardModalProps> = ({
   onDelete,
   defaultEditMode = false,
   teams = [],
+  showTeamAccess = false,
 }) => {
   const [isEdit, setIsEdit] = useState(defaultEditMode || !board); // If board is provided, start in view mode or defaultEditMode
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>(
     board?.teamIds || []
   );
+  const [mounted, setMounted] = useState(false);
+
+  // Generate UUID safely on client side
+  const generateId = useCallback(() => {
+    if (typeof window !== "undefined" && window.crypto?.randomUUID) {
+      return window.crypto.randomUUID();
+    }
+    // Fallback for older browsers or server-side
+    return `temp-${Math.random().toString(36).substr(2, 9)}-${Date.now()}`;
+  }, []);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const {
     register,
@@ -60,36 +76,36 @@ const AddBoardModal: React.FC<AddBoardModalProps> = ({
     reset,
   } = useForm<BoardFormValues>({
     resolver: boardResolver,
-    defaultValues: board
-      ? {
-          name: board.name,
-          columns: board.columns.map((col) => ({
-            id: col.id || crypto.randomUUID(),
-            name: col.name,
-          })),
-        }
-      : {
-          name: "",
-          columns: [
-            { id: crypto.randomUUID(), name: "Todo" },
-            { id: crypto.randomUUID(), name: "Doing" },
-          ],
-        },
+    defaultValues: {
+      name: "",
+      columns: [], // Initialize empty, will be set in useEffect
+    },
   });
 
   useEffect(() => {
+    if (!mounted) return; // Don't run until mounted to avoid hydration issues
+
     if (board) {
       reset({
         name: board.name,
         columns: board.columns.map((col) => ({
-          id: col.id || crypto.randomUUID(),
+          id: col.id || generateId(),
           name: col.name,
         })),
       });
       setSelectedTeamIds(board.teamIds || []);
       setIsEdit(defaultEditMode);
+    } else {
+      // Initialize default columns for new boards
+      reset({
+        name: "",
+        columns: [
+          { id: generateId(), name: "Todo" },
+          { id: generateId(), name: "Doing" },
+        ],
+      });
     }
-  }, [board, reset, defaultEditMode]);
+  }, [board, reset, defaultEditMode, mounted, generateId]);
 
   const { fields, append, remove } = useFieldArray<BoardFormValues, "columns">({
     control,
@@ -102,7 +118,8 @@ const AddBoardModal: React.FC<AddBoardModalProps> = ({
       columns: (data.columns ?? [])
         .filter((col) => (col.name ?? "").trim() !== "")
         .map((col) => ({ name: col.name })),
-      teamIds: selectedTeamIds,
+      // Only include teamIds if team access is shown (admin context)
+      teamIds: showTeamAccess ? selectedTeamIds : [],
     };
     if (board && isEdit && onEdit) {
       onEdit(payload);
@@ -222,36 +239,40 @@ const AddBoardModal: React.FC<AddBoardModalProps> = ({
           type="button"
           variant="secondary"
           className="w-full mt-3"
-          onClick={() => append({ id: crypto.randomUUID(), name: "" })}
+          onClick={() => append({ id: generateId(), name: "" })}
           disabled={board && !isEdit}
         >
           + Add New Column
         </Button>
       </div>
-      <div className="mb-4">
-        <label className="block text-xs font-bold mb-2 text-black dark:text-light-gray">
-          Teams with Access
-        </label>
-        <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto border border-gray-300 dark:border-gray-700 rounded p-2 bg-white dark:bg-gray-900">
-          {teams.map((team) => {
-            const selected = selectedTeamIds.includes(team.id);
-            return (
-              <button
-                key={team.id}
-                type="button"
-                onClick={() => toggleTeamSelection(team.id)}
-                className={`px-3 py-1 rounded-full border ${
-                  selected
-                    ? "bg-main-purple text-white border-main-purple"
-                    : "bg-gray-200 dark:bg-gray-700 border-transparent text-gray-700 dark:text-gray-300"
-                } focus:outline-none focus:ring-2 focus:ring-main-purple`}
-              >
-                {team.name}
-              </button>
-            );
-          })}
+      {/* Teams with Access - Only show in admin context */}
+      {showTeamAccess && (
+        <div className="mb-4">
+          <label className="block text-xs font-bold mb-2 text-black dark:text-light-gray">
+            Teams with Access
+          </label>
+          <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto border border-gray-300 dark:border-gray-700 rounded p-2 bg-white dark:bg-gray-900">
+            {teams.map((team) => {
+              const selected = selectedTeamIds.includes(team.id);
+              return (
+                <button
+                  key={team.id}
+                  type="button"
+                  onClick={() => toggleTeamSelection(team.id)}
+                  disabled={board && !isEdit}
+                  className={`px-3 py-1 rounded-full border ${
+                    selected
+                      ? "bg-main-purple text-white border-main-purple"
+                      : "bg-gray-200 dark:bg-gray-700 border-transparent text-gray-700 dark:text-gray-300"
+                  } focus:outline-none focus:ring-2 focus:ring-main-purple disabled:opacity-50`}
+                >
+                  {team.name}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
       {(isEdit || !board) && (
         <Button type="submit" className="w-full" variant="primary-l">
           {board ? "Save Changes" : "Create New Board"}
@@ -261,4 +282,30 @@ const AddBoardModal: React.FC<AddBoardModalProps> = ({
   );
 };
 
-export default AddBoardModal;
+// Add loading state while component mounts to prevent hydration issues
+const AddBoardModalWrapper: React.FC<AddBoardModalProps> = (props) => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div
+        className="bg-white dark:bg-[#2b2c37] rounded-lg p-8 w-full max-w-md"
+        style={{ minWidth: 400 }}
+      >
+        <div className="animate-pulse">
+          <div className="h-6 bg-gray-300 dark:bg-gray-600 rounded mb-4"></div>
+          <div className="h-10 bg-gray-300 dark:bg-gray-600 rounded mb-4"></div>
+          <div className="h-10 bg-gray-300 dark:bg-gray-600 rounded mb-4"></div>
+        </div>
+      </div>
+    );
+  }
+
+  return <AddBoardModal {...props} />;
+};
+
+export default AddBoardModalWrapper;

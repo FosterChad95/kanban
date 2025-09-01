@@ -12,16 +12,18 @@ import type { Task, TaskUpdatePayload } from "@/util/types";
  */
 export async function GET(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
   try {
-    const task: Task | null = await getTaskById(params.id);
+    const resolvedParams = await params;
+    const task: Task | null = await getTaskById(resolvedParams.id);
     if (!task) {
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
     }
     return NextResponse.json(task);
   } catch (err) {
-    console.error(`GET /api/tasks/${params.id} error:`, err);
+    const resolvedParams = await params;
+    console.error(`GET /api/tasks/${resolvedParams.id} error:`, err);
     return NextResponse.json(
       { error: "Failed to fetch task" },
       { status: 500 }
@@ -35,9 +37,10 @@ export async function GET(
  */
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
   try {
+    const resolvedParams = await params;
     const body: TaskUpdatePayload = await req.json();
     // Extract subtasks and map to updateMany structure
     const { subtasks, ...rest } = body;
@@ -53,10 +56,11 @@ export async function PUT(
         })),
       };
     }
-    const updated: Task = await updateTask(params.id, data);
+    const updated: Task = await updateTask(resolvedParams.id, data);
     return NextResponse.json(updated);
   } catch (err) {
-    console.error(`PUT /api/tasks/${params.id} error:`, err);
+    const resolvedParams = await params;
+    console.error(`PUT /api/tasks/${resolvedParams.id} error:`, err);
     return NextResponse.json(
       { error: "Failed to update task" },
       { status: 500 }
@@ -70,13 +74,15 @@ export async function PUT(
  */
 export async function DELETE(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
   try {
-    await deleteTask(params.id);
+    const resolvedParams = await params;
+    await deleteTask(resolvedParams.id);
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error(`DELETE /api/tasks/${params.id} error:`, err);
+    const resolvedParams = await params;
+    console.error(`DELETE /api/tasks/${resolvedParams.id} error:`, err);
     return NextResponse.json(
       { error: "Failed to delete task" },
       { status: 500 }

@@ -13,9 +13,10 @@ import { getCurrentUser } from "../../../../lib/auth";
  */
 export async function GET(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -28,17 +29,18 @@ export async function GET(
     });
     const accessibleBoardIds = accessibleBoards.map((b) => b.id);
 
-    if (!accessibleBoardIds.includes(params.id)) {
+    if (!accessibleBoardIds.includes(resolvedParams.id)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const board = await getBoardById(params.id);
+    const board = await getBoardById(resolvedParams.id);
     if (!board) {
       return NextResponse.json({ error: "Board not found" }, { status: 404 });
     }
     return NextResponse.json(board);
   } catch (err) {
-    console.error(`GET /api/boards/${params.id} error:`, err);
+    const resolvedParams = await params;
+    console.error(`GET /api/boards/${resolvedParams.id} error:`, err);
     return NextResponse.json(
       { error: "Failed to fetch board" },
       { status: 500 }
@@ -52,14 +54,16 @@ export async function GET(
  */
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     const body = await req.json();
-    const updated = await updateBoard(params.id, body);
+    const updated = await updateBoard(resolvedParams.id, body);
     return NextResponse.json(updated);
   } catch (err) {
-    console.error(`PUT /api/boards/${params.id} error:`, err);
+    const resolvedParams = await params;
+    console.error(`PUT /api/boards/${resolvedParams.id} error:`, err);
     return NextResponse.json(
       { error: "Failed to update board" },
       { status: 500 }

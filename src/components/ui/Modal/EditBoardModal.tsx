@@ -20,16 +20,21 @@ const boardResolver = zodResolver(
 ) as unknown as Resolver<BoardFormValues>;
 
 type EditBoardModalProps = {
-  board: BoardInput & { teamIds?: string[] };
-  onEdit: (form: BoardInput & { teamIds?: string[] }) => void;
-  /// Make teams optional
+  board: BoardInput & { teamIds?: string[]; id?: string };
+  onEdit: (form: BoardInput & { teamIds?: string[]; id?: string }) => void;
   teams?: TeamOption[];
+  loading?: boolean;
+  error?: string | null;
+  showTeamAccess?: boolean; // Only show team selection in admin context
 };
 
 const EditBoardModal: React.FC<EditBoardModalProps> = ({
   board,
   onEdit,
   teams = [],
+  loading = false,
+  error = null,
+  showTeamAccess = false,
 }) => {
   const [selectedTeamIds, setSelectedTeamIds] = React.useState<string[]>(
     board.teamIds || []
@@ -77,14 +82,17 @@ const EditBoardModal: React.FC<EditBoardModalProps> = ({
   };
 
   const onSubmit = (data: BoardFormValues) => {
-    const payload: BoardInput & { teamIds?: string[] } = {
-      name: data.name,
+    const payload: BoardInput & { teamIds?: string[]; id?: string } = {
+      name: data.name.trim(),
       columns: (data.columns ?? [])
         .filter((col) => (col.name ?? "").trim() !== "")
-        .map((col) =>
-          col.id ? { id: col.id, name: col.name } : { name: col.name }
-        ),
-      teamIds: selectedTeamIds,
+        .map((col) => ({
+          id: col.id || undefined,
+          name: col.name.trim(),
+        })),
+      // Only include teamIds if team access is shown (admin context)
+      ...(showTeamAccess && { teamIds: selectedTeamIds }),
+      ...(board.id && { id: board.id }),
     };
     onEdit(payload);
   };
@@ -142,32 +150,43 @@ const EditBoardModal: React.FC<EditBoardModalProps> = ({
           + Add New Column
         </Button>
       </div>
-      <div className="mb-4">
-        <label className="block text-xs font-bold mb-2">
-          Teams with Access
-        </label>
-        <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto border border-gray-300 dark:border-gray-700 rounded p-2 bg-white dark:bg-gray-900">
-          {teams.map((team) => {
-            const selected = selectedTeamIds.includes(team.id);
-            return (
-              <button
-                key={team.id}
-                type="button"
-                onClick={() => toggleTeamSelection(team.id)}
-                className={`px-3 py-1 rounded-full border ${
-                  selected
-                    ? "bg-main-purple text-white border-main-purple"
-                    : "bg-gray-200 dark:bg-gray-700 border-transparent text-gray-700 dark:text-gray-300"
-                } focus:outline-none focus:ring-2 focus:ring-main-purple`}
-              >
-                {team.name}
-              </button>
-            );
-          })}
+      {/* Teams with Access - Only show in admin context */}
+      {showTeamAccess && (
+        <div className="mb-4">
+          <label className="block text-xs font-bold mb-2">
+            Teams with Access
+          </label>
+          <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto border border-gray-300 dark:border-gray-700 rounded p-2 bg-white dark:bg-gray-900">
+            {teams.map((team) => {
+              const selected = selectedTeamIds.includes(team.id);
+              return (
+                <button
+                  key={team.id}
+                  type="button"
+                  onClick={() => toggleTeamSelection(team.id)}
+                  className={`px-3 py-1 rounded-full border ${
+                    selected
+                      ? "bg-main-purple text-white border-main-purple"
+                      : "bg-gray-200 dark:bg-gray-700 border-transparent text-gray-700 dark:text-gray-300"
+                  } focus:outline-none focus:ring-2 focus:ring-main-purple`}
+                >
+                  {team.name}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
-      <Button type="submit" className="w-full flex-col" variant="primary-l">
-        Save Changes
+      )}
+      {error && (
+        <div className="mb-4 text-center text-red-500">{error}</div>
+      )}
+      <Button 
+        type="submit" 
+        className="w-full flex-col" 
+        variant="primary-l"
+        disabled={loading}
+      >
+        {loading ? "Saving..." : "Save Changes"}
       </Button>
     </form>
   );

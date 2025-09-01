@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Button from "../Button/Button";
 import TextField from "../TextField/TextField";
 import { Dropdown } from "../Dropdown/Dropdown";
-import { AddTeamSchema, AddTeamFormValues } from "../../../schemas/forms";
+import { EditTeamSchema, EditTeamFormValues } from "../../../schemas/forms";
 import { UserOption } from "./AddTeamModal";
 import Modal from "./Modal";
 
@@ -27,11 +27,13 @@ type EditTeamModalProps = {
   multiUser?: boolean;
   isOpen: boolean;
   onClose: () => void;
+  loading?: boolean;
+  error?: string | null;
 };
 
 const teamResolver = zodResolver(
-  AddTeamSchema
-) as unknown as Resolver<AddTeamFormValues>;
+  EditTeamSchema
+) as unknown as Resolver<EditTeamFormValues>;
 
 const EditTeamModal: React.FC<EditTeamModalProps> = ({
   initialTeamName,
@@ -43,6 +45,8 @@ const EditTeamModal: React.FC<EditTeamModalProps> = ({
   multiUser = true,
   isOpen,
   onClose,
+  loading = false,
+  error = null,
 }) => {
   const {
     register,
@@ -50,7 +54,7 @@ const EditTeamModal: React.FC<EditTeamModalProps> = ({
     setValue,
     watch,
     formState: { errors },
-  } = useForm<AddTeamFormValues>({
+  } = useForm<EditTeamFormValues>({
     resolver: teamResolver,
     defaultValues: {
       teamName: initialTeamName,
@@ -94,7 +98,7 @@ const EditTeamModal: React.FC<EditTeamModalProps> = ({
         )
       : [];
 
-  const onSubmit = (data: AddTeamFormValues) => {
+  const onSubmit = (data: EditTeamFormValues) => {
     onEdit({
       teamName: data.teamName,
       users: filterUserOptions(data.users ?? []),
@@ -153,8 +157,16 @@ const EditTeamModal: React.FC<EditTeamModalProps> = ({
             multiSelect={true}
           />
         </div>
-        <Button type="submit" className="w-full" variant="primary-l">
-          Save Changes
+        {error && (
+          <div className="mb-4 text-center text-red-500">{error}</div>
+        )}
+        <Button 
+          type="submit" 
+          className="w-full" 
+          variant="primary-l"
+          disabled={loading}
+        >
+          {loading ? "Saving..." : "Save Changes"}
         </Button>
       </form>
     </Modal>

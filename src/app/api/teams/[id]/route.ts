@@ -1,71 +1,41 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { updateTeam } from "@/queries/teamQueries";
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     const user = await getCurrentUser();
     if (!user || user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const teamId = params.id;
+    const teamId = resolvedParams.id;
     if (!teamId) {
       return NextResponse.json({ error: "Missing team ID" }, { status: 400 });
     }
 
-    const { name, userIds, boardIds } = await req.json();
+    const body = await req.json();
+    const { teamName, users, boards } = body;
 
-    if (!name) {
-      return NextResponse.json({ error: "Missing team name" }, { status: 400 });
+    // Validate required fields
+    if (!teamName || typeof teamName !== 'string' || teamName.trim() === '') {
+      return NextResponse.json({ error: "Team name is required" }, { status: 400 });
     }
 
-    // Update team name, users, and boards (handle UserTeam and TeamBoard join tables directly)
-    const updatedTeam = await prisma.$transaction(async (tx) => {
-      // Update team name
-      await tx.team.update({
-        where: { id: teamId },
-        data: { name },
-      });
+    // Extract IDs from user and board objects
+    const userIds = Array.isArray(users) ? users.map((u: any) => u.id).filter(Boolean) : [];
+    const boardIds = Array.isArray(boards) ? boards.map((b: any) => b.id).filter(Boolean) : [];
 
-      // Remove all existing UserTeam relations for this team
-      await tx.userTeam.deleteMany({
-        where: { teamId },
-      });
-
-      // Add new UserTeam relations for each userId
-      if (Array.isArray(userIds) && userIds.length > 0) {
-        await tx.userTeam.createMany({
-          data: userIds.map((userId: string) => ({
-            userId,
-            teamId,
-          })),
-        });
-      }
-
-      // Remove all existing TeamBoard relations for this team
-      await tx.teamBoard.deleteMany({
-        where: { teamId },
-      });
-
-      // Add new TeamBoard relations for each boardId
-      if (Array.isArray(boardIds) && boardIds.length > 0) {
-        await tx.teamBoard.createMany({
-          data: boardIds.map((boardId: string) => ({
-            boardId,
-            teamId,
-          })),
-        });
-      }
-
-      // Return the updated team with users and boards
-      return tx.team.findUnique({
-        where: { id: teamId },
-        include: { users: true, boards: true },
-      });
+    // Update team using the query helper
+    const updatedTeam = await updateTeam(teamId, {
+      name: teamName.trim(),
+      userIds,
+      boardIds
     });
 
     return NextResponse.json(updatedTeam, { status: 200 });
@@ -80,15 +50,16 @@ export async function PUT(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     const user = await getCurrentUser();
     if (!user || user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const teamId = params.id;
+    const teamId = resolvedParams.id;
 
     if (!teamId) {
       return NextResponse.json({ error: "Missing team ID" }, { status: 400 });
