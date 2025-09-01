@@ -1,53 +1,47 @@
-import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { createUser } from "@/queries/userQueries";
+import { 
+  withValidation, 
+  withErrorHandling, 
+  createSuccessResponse,
+  createErrorResponse 
+} from "@/lib/api-utils";
+import { SignupSchema } from "@/schemas/api";
 
-export async function POST(request: Request) {
-  try {
-    const body = (await request.json()) as {
-      email: string;
-      password: string;
-      name?: string | null;
-    };
-    const { email, password, name } = body;
+/**
+ * POST /api/auth/signup
+ * Create a new user account with email and password.
+ */
+export async function POST(req: Request) {
+  return withErrorHandling(async () => {
+    return withValidation(req, SignupSchema, async (body) => {
+      const { email, password, name } = body;
 
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email and password are required" },
-        { status: 400 }
-      );
-    }
+      try {
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-    if (typeof email !== "string" || typeof password !== "string") {
-      return NextResponse.json({ error: "Invalid input" }, { status: 400 });
-    }
+        const user = await createUser({
+          email,
+          name,
+          hashedPassword,
+        });
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+        // Remove sensitive fields before returning
+        const { hashedPassword: _, ...safeUser } = user;
 
-    const user = await createUser({
-      email,
-      name: typeof name === "string" ? name : undefined,
-      hashedPassword,
+        return createSuccessResponse({ user: safeUser }, 201);
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "Unable to create user";
+        
+        if (
+          message.includes("Unique constraint failed") ||
+          message.includes("duplicate key")
+        ) {
+          return createErrorResponse("Email already in use", 409);
+        }
+
+        throw err; // Let withErrorHandling catch other errors
+      }
     });
-
-    // Remove sensitive fields before returning
-    const { hashedPassword: removedHashedPassword, ...safeUser } = user;
-    void removedHashedPassword;
-
-    return NextResponse.json({ user: safeUser }, { status: 201 });
-  } catch (err: unknown) {
-    const message =
-      err instanceof Error ? err.message : "Unable to create user";
-    if (
-      message.includes("Unique constraint failed") ||
-      message.includes("duplicate key")
-    ) {
-      return NextResponse.json(
-        { error: "Email already in use" },
-        { status: 409 }
-      );
-    }
-
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
+  })();
 }

@@ -1,45 +1,43 @@
-import { NextResponse } from "next/server";
 import { getAllTasks, createTask } from "../../../queries/taskQueries";
+import { 
+  withAuth, 
+  withAuthAndValidation, 
+  withErrorHandling, 
+  createSuccessResponse 
+} from "../../../lib/api-utils";
+import { CreateTaskSchema } from "../../../schemas/api";
 
 /**
  * GET /api/tasks
- * Returns all tasks (optionally could accept query params for columnId in future).
+ * Returns all tasks. Should be filtered by user access in the future.
  */
-export async function GET() {
-  try {
+export const GET = withErrorHandling(async () => {
+  return withAuth(async () => {
     const tasks = await getAllTasks();
-    return NextResponse.json(tasks);
-  } catch (err) {
-    console.error("GET /api/tasks error:", err);
-    return NextResponse.json(
-      { error: "Failed to fetch tasks" },
-      { status: 500 }
-    );
-  }
-}
+    return createSuccessResponse(tasks);
+  });
+});
 
 /**
  * POST /api/tasks
- * Create a new task. Expects JSON body compatible with your createTask helper.
+ * Create a new task with optional subtasks.
  */
 export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    // Transform subtasks to Prisma nested create format if present
-    const data = {
-      ...body,
-      subtasks:
-        body.subtasks && body.subtasks.length > 0
-          ? { create: body.subtasks }
-          : undefined,
-    };
-    const created = await createTask(data);
-    return NextResponse.json(created, { status: 201 });
-  } catch (err) {
-    console.error("POST /api/tasks error:", err);
-    return NextResponse.json(
-      { error: "Failed to create task" },
-      { status: 500 }
-    );
-  }
+  return withErrorHandling(async () => {
+    return withAuthAndValidation(req, CreateTaskSchema, async (body) => {
+      // Transform data to match Prisma expectations
+      const data = {
+        title: body.title,
+        description: body.description,
+        column: { connect: { id: body.columnId } },
+        subtasks:
+          body.subtasks && body.subtasks.length > 0
+            ? { create: body.subtasks }
+            : undefined,
+      };
+      
+      const created = await createTask(data);
+      return createSuccessResponse(created, 201);
+    });
+  })();
 }

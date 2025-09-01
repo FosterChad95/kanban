@@ -1,20 +1,28 @@
-import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { 
+  withAdminAuth, 
+  withErrorHandling, 
+  createSuccessResponse 
+} from "@/lib/api-utils";
 
-// GET /api/users - List all users (id, name, avatar)
-export async function GET() {
-  try {
+/**
+ * GET /api/users
+ * List all users (id, name, avatar, email).
+ * Only admins can access this endpoint.
+ */
+export const GET = withErrorHandling(async () => {
+  return withAdminAuth(async () => {
     const users = await prisma.user.findMany({
       select: {
         id: true,
         name: true,
-        image: true, // avatar
+        image: true,
         email: true,
       },
       orderBy: { name: "asc" },
     });
 
-    // Map to UserOption shape expected by AddTeamModal
+    // Transform to expected shape
     const userOptions = users.map(
       (user: {
         id: string;
@@ -29,11 +37,6 @@ export async function GET() {
       })
     );
 
-    return NextResponse.json(userOptions);
-  } catch {
-    return NextResponse.json(
-      { error: "Failed to fetch users" },
-      { status: 500 }
-    );
-  }
-}
+    return createSuccessResponse(userOptions);
+  });
+});

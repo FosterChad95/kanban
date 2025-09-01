@@ -1,82 +1,73 @@
-import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth";
 import { updateTeam } from "@/queries/teamQueries";
+import { 
+  withAdminAuth, 
+  withAdminAuthAndValidation, 
+  withErrorHandling, 
+  createSuccessResponse,
+  createErrorResponse,
+  validateParams 
+} from "@/lib/api-utils";
+import { IdParamSchema, UpdateTeamSchema } from "@/schemas/api";
 
+/**
+ * PUT /api/teams/:id
+ * Update a team with new name, users, and boards.
+ * Only admins can update teams.
+ */
 export async function PUT(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const resolvedParams = await params;
-    const user = await getCurrentUser();
-    if (!user || user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  return withErrorHandling(async () => {
+    const { data: validatedParams, error } = await validateParams(params, IdParamSchema);
+    if (error) return error;
 
-    const teamId = resolvedParams.id;
-    if (!teamId) {
-      return NextResponse.json({ error: "Missing team ID" }, { status: 400 });
-    }
+    return withAdminAuthAndValidation(req, UpdateTeamSchema, async (body) => {
+      // Extract IDs from user and board objects
+      const userIds = body.users.map((u) => u.id).filter(Boolean);
+      const boardIds = body.boards.map((b) => b.id).filter(Boolean);
 
-    const body = await req.json();
-    const { teamName, users, boards } = body;
+      // Update team using the query helper
+      const updatedTeam = await updateTeam(validatedParams.id, {
+        name: body.teamName,
+        userIds,
+        boardIds
+      });
 
-    // Validate required fields
-    if (!teamName || typeof teamName !== 'string' || teamName.trim() === '') {
-      return NextResponse.json({ error: "Team name is required" }, { status: 400 });
-    }
-
-    // Extract IDs from user and board objects
-    const userIds = Array.isArray(users) ? users.map((u: any) => u.id).filter(Boolean) : [];
-    const boardIds = Array.isArray(boards) ? boards.map((b: any) => b.id).filter(Boolean) : [];
-
-    // Update team using the query helper
-    const updatedTeam = await updateTeam(teamId, {
-      name: teamName.trim(),
-      userIds,
-      boardIds
+      return createSuccessResponse(updatedTeam);
     });
-
-    return NextResponse.json(updatedTeam, { status: 200 });
-  } catch (err) {
-    console.error("PUT /api/teams/[id] error:", err);
-    return NextResponse.json(
-      { error: "Failed to update team" },
-      { status: 500 }
-    );
-  }
+  })();
 }
 
+/**
+ * DELETE /api/teams/:id  
+ * Delete a team by ID.
+ * Only admins can delete teams.
+ */
 export async function DELETE(
-  req: Request,
+  _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const resolvedParams = await params;
-    const user = await getCurrentUser();
-    if (!user || user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  return withErrorHandling(async () => {
+    const { data: validatedParams, error } = await validateParams(params, IdParamSchema);
+    if (error) return error;
 
-    const teamId = resolvedParams.id;
+    return withAdminAuth(async () => {
+      // Check if team exists
+      const existingTeam = await prisma.team.findUnique({
+        where: { id: validatedParams.id }
+      });
 
-    if (!teamId) {
-      return NextResponse.json({ error: "Missing team ID" }, { status: 400 });
-    }
+      if (!existingTeam) {
+        return createErrorResponse("Team not found", 404);
+      }
 
-    // Optionally, you could check if the team exists first
+      await prisma.team.delete({
+        where: { id: validatedParams.id },
+      });
 
-    await prisma.team.delete({
-      where: { id: teamId },
+      return createSuccessResponse({ message: "Team deleted successfully" });
     });
-
-    return NextResponse.json({ message: "Team deleted" }, { status: 200 });
-  } catch (err) {
-    console.error("DELETE /api/teams/[id] error:", err);
-    return NextResponse.json(
-      { error: "Failed to delete team" },
-      { status: 500 }
-    );
-  }
+  })();
 }

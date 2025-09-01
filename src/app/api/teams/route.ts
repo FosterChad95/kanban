@@ -1,19 +1,19 @@
-import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth";
+import { 
+  withAdminAuth, 
+  withAdminAuthAndValidation, 
+  withErrorHandling, 
+  createSuccessResponse 
+} from "@/lib/api-utils";
+import { CreateTeamSchema } from "@/schemas/api";
 
 /**
  * GET /api/teams
- * Returns all teams.
+ * Returns all teams with users and boards.
  * Only admins can access.
  */
-export async function GET() {
-  try {
-    const user = await getCurrentUser();
-    if (!user || user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+export const GET = withErrorHandling(async () => {
+  return withAdminAuth(async () => {
     const teams = await prisma.team.findMany({
       include: {
         users: {
@@ -33,54 +33,31 @@ export async function GET() {
       },
     });
 
-    // Map users to array of { id, name }
-    // Map boards to array of { id, name }
-    const teamsWithUsersAndBoards = teams.map((team) => ({
+    // Transform to expected shape
+    const transformedTeams = teams.map((team) => ({
       id: team.id,
       name: team.name,
       users: team.users.map((ut) => ut.user),
       boards: team.boards.map((tb) => tb.board),
     }));
 
-    return NextResponse.json(teamsWithUsersAndBoards, { status: 200 });
-  } catch (err) {
-    console.error("GET /api/teams error:", err);
-    return NextResponse.json(
-      { error: "Failed to fetch teams" },
-      { status: 500 }
-    );
-  }
-}
+    return createSuccessResponse(transformedTeams);
+  });
+});
 
 /**
  * POST /api/teams
- * Body: { name: string }
  * Creates a new team.
  * Only admins can create teams.
  */
 export async function POST(req: Request) {
-  try {
-    const user = await getCurrentUser();
-    if (!user || user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  return withErrorHandling(async () => {
+    return withAdminAuthAndValidation(req, CreateTeamSchema, async (body) => {
+      const team = await prisma.team.create({
+        data: { name: body.name },
+      });
 
-    const { name } = await req.json();
-
-    if (!name) {
-      return NextResponse.json({ error: "Missing team name" }, { status: 400 });
-    }
-
-    const team = await prisma.team.create({
-      data: { name },
+      return createSuccessResponse(team, 201);
     });
-
-    return NextResponse.json(team, { status: 201 });
-  } catch (err) {
-    console.error("POST /api/teams error:", err);
-    return NextResponse.json(
-      { error: "Failed to create team" },
-      { status: 500 }
-    );
-  }
+  })();
 }
