@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface AdminSectionProps {
   title: string;
@@ -37,9 +37,7 @@ export function AdminSection({
       {/* Section Content */}
       <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-6 bg-white dark:bg-gray-900 shadow">
         {/* Error Display */}
-        {error && (
-          <p className="text-center text-red-500 mb-2">{error}</p>
-        )}
+        {error && <p className="text-center text-red-500 mb-2">{error}</p>}
 
         {/* Loading State */}
         {loading ? (
@@ -91,7 +89,7 @@ export function ItemList<T extends { id: string; name: string }>({
           >
             {/* Custom item rendering or default */}
             {renderItem ? renderItem(item) : <span>{item.name}</span>}
-            
+
             {/* Action buttons */}
             <div className="flex gap-2">
               <button

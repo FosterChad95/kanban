@@ -11,6 +11,8 @@ import { useRouter, useParams } from "next/navigation";
 import { useModal } from "@/providers/ModalProvider";
 import AddBoardModal from "@/components/ui/Modal/AddBoardModal";
 import Logo from "@/images/Logo";
+import { useTheme } from "@/providers/ThemeProvider";
+import { cn } from "@/lib/utils";
 
 interface BoardProps {
   id: string;
@@ -35,6 +37,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   const params = useParams();
   const currentBoardId = (params as { boardId?: string })?.boardId;
   const { openModal, closeModal } = useModal();
+  const { theme } = useTheme();
+  const darkMode = theme === "dark";
 
   // Handle fade-out before hiding sidebar
   React.useEffect(() => {
@@ -94,10 +98,16 @@ const Sidebar: React.FC<SidebarProps> = ({
                     >
                       <span className="inline-flex items-center justify-center mr-2">
                         <IconBoardIcon
-                          className={isActive ? "text-white" : ""}
+                          className={isActive || darkMode ? "text-white" : ""}
                         />
                       </span>
-                      <span className="truncate">{board.name}</span>
+                      <span
+                        className={cn("truncate", {
+                          "text-white": darkMode,
+                        })}
+                      >
+                        {board.name}
+                      </span>
                     </Link>
                   );
                 })}
@@ -161,6 +171,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
             <SettingsModal
               isOpen={settingsOpen}
+              darkMode={darkMode}
               onClose={() => setSettingsOpen(false)}
             />
           </motion.aside>

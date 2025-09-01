@@ -26,16 +26,29 @@ export const createSuccessResponse = <T>(
   data?: T,
   status: number = 200,
   message?: string
-): NextResponse<ApiSuccessResponse<T>> => {
-  return NextResponse.json(
-    { ...(data && { data }), ...(message && { message }) },
-    { status }
-  );
+): NextResponse<any> => {
+  if (message) {
+    if (data && typeof data === "object") {
+      return NextResponse.json({ ...data, message }, { status });
+    }
+    if (data !== undefined) {
+      return NextResponse.json({ value: data, message }, { status });
+    }
+    return NextResponse.json({ message }, { status });
+  }
+
+  if (data !== undefined) {
+    return NextResponse.json(data, { status });
+  }
+
+  return NextResponse.json({}, { status });
 };
 
 // Auth middleware
 export async function withAuth(
-  handler: (user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>) => Promise<NextResponse>
+  handler: (
+    user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>
+  ) => Promise<NextResponse>
 ) {
   try {
     const user = await getCurrentUser();
@@ -51,7 +64,9 @@ export async function withAuth(
 
 // Admin auth middleware
 export async function withAdminAuth(
-  handler: (user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>) => Promise<NextResponse>
+  handler: (
+    user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>
+  ) => Promise<NextResponse>
 ) {
   return withAuth(async (user) => {
     if (user.role !== "ADMIN") {
@@ -65,12 +80,15 @@ export async function withAdminAuth(
 export async function withValidation<T>(
   req: Request,
   schema: z.ZodSchema<T>,
-  handler: (body: T, user?: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>) => Promise<NextResponse>
+  handler: (
+    body: T,
+    user?: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>
+  ) => Promise<NextResponse>
 ) {
   try {
     const body = await req.json();
     const validationResult = schema.safeParse(body);
-    
+
     if (!validationResult.success) {
       return createErrorResponse(
         "Validation failed",
@@ -93,7 +111,10 @@ export async function withValidation<T>(
 export async function withAuthAndValidation<T>(
   req: Request,
   schema: z.ZodSchema<T>,
-  handler: (body: T, user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>) => Promise<NextResponse>
+  handler: (
+    body: T,
+    user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>
+  ) => Promise<NextResponse>
 ) {
   return withAuth(async (user) => {
     return withValidation(req, schema, (body) => handler(body, user));
@@ -104,7 +125,10 @@ export async function withAuthAndValidation<T>(
 export async function withAdminAuthAndValidation<T>(
   req: Request,
   schema: z.ZodSchema<T>,
-  handler: (body: T, user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>) => Promise<NextResponse>
+  handler: (
+    body: T,
+    user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>
+  ) => Promise<NextResponse>
 ) {
   return withAdminAuth(async (user) => {
     return withValidation(req, schema, (body) => handler(body, user));
@@ -112,9 +136,7 @@ export async function withAdminAuthAndValidation<T>(
 }
 
 // Async error handler wrapper
-export function withErrorHandling(
-  handler: () => Promise<NextResponse>
-) {
+export function withErrorHandling(handler: () => Promise<NextResponse>) {
   return async (): Promise<NextResponse> => {
     try {
       return await handler();
@@ -136,13 +158,19 @@ export async function validateParams<T>(
   try {
     const resolvedParams = await params;
     const validationResult = schema.safeParse(resolvedParams);
-    
+
     if (!validationResult.success) {
-      return { error: createErrorResponse("Invalid parameters", 400, validationResult.error.issues) };
+      return {
+        error: createErrorResponse(
+          "Invalid parameters",
+          400,
+          validationResult.error.issues
+        ),
+      };
     }
-    
+
     return { data: validationResult.data };
-  } catch (error) {
+  } catch {
     return { error: createErrorResponse("Failed to resolve parameters", 500) };
   }
 }
