@@ -40,11 +40,15 @@ export const AddTeamSchema = z.object({
         id: z.string(),
         name: z.string(),
         avatar: z.string().optional(),
+        email: z.string().optional(),
       })
     )
     .optional()
     .default([]),
 });
+
+/* Edit Team schema - same as Add Team but for editing */
+export const EditTeamSchema = AddTeamSchema;
 
 /* Add/Edit Board schema */
 export const BoardSchema = z.object({
@@ -130,3 +134,6 @@ export type AddUserInput = z.input<typeof AddUserSchema>;
 
 export type EditUserFormValues = z.infer<typeof EditUserSchema>;
 export type EditUserInput = z.input<typeof EditUserSchema>;
+
+export type EditTeamFormValues = z.infer<typeof EditTeamSchema>;
+export type EditTeamInput = z.input<typeof EditTeamSchema>;
