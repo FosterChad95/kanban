@@ -84,11 +84,7 @@ export default function BoardWrapper({
 
       const payload = {
         name: form.name,
-        columns: {
-          update: columnsToUpdate,
-          create: columnsToCreate,
-          delete: columnsToDelete,
-        },
+        columns: form.columns,
       };
 
       const res = await fetch(`/api/boards/${boardId}`, {
