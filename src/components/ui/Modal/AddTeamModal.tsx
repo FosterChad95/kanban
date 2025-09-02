@@ -1,26 +1,19 @@
 import React from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Button from "../Button/Button";
 import TextField from "../TextField/TextField";
 import { Dropdown } from "../Dropdown/Dropdown";
+import { FormField } from "./FormModal";
+import Button from "../Button/Button";
 import { AddTeamSchema, AddTeamFormValues } from "../../../schemas/forms";
+import { filterUserOptions, MODAL_STYLES } from "./utils";
+import type { UserOption, TeamFormData } from "./types";
 
-export type UserOption = {
-  id: string;
-  name: string;
-  email?: string;
-  avatar?: string;
-};
-
-type AddTeamModalProps = {
+interface AddTeamModalProps {
   users: UserOption[];
-  onCreate: (form: {
-    teamName: string;
-    users: UserOption[];
-  }) => void | Promise<void>;
+  onCreate: (form: TeamFormData) => void | Promise<void>;
   multiUser?: boolean;
-};
+}
 
 const teamResolver = zodResolver(
   AddTeamSchema
@@ -47,18 +40,9 @@ const AddTeamModal: React.FC<AddTeamModalProps> = ({
 
   const selectedUsers = watch("users");
 
-  // Type guard to ensure only UserOption[]
-  const filterUserOptions = (arr: unknown): UserOption[] =>
-    Array.isArray(arr)
-      ? arr.filter(
-          (u): u is UserOption =>
-            typeof u === "object" && u !== null && "id" in u && "name" in u
-        )
-      : [];
-
   const onSubmit = (data: AddTeamFormValues) => {
     onCreate({
-      teamName: data.teamName,
+      name: data.teamName, // Map teamName to name for consistency
       users: filterUserOptions(data.users ?? []),
     });
   };
@@ -66,26 +50,29 @@ const AddTeamModal: React.FC<AddTeamModalProps> = ({
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="bg-white dark:bg-[#2b2c37] text-black dark:text-light-gray rounded-lg p-8 w-full max-w-md"
-      style={{ minWidth: 400 }}
+      className={MODAL_STYLES.form}
+      style={MODAL_STYLES.formMinWidth}
     >
       <div className="flex justify-between items-start mb-6">
-        <h2 className="text-xl font-bold">Add New Team</h2>
+        <h2 className={MODAL_STYLES.heading}>Add New Team</h2>
       </div>
-      <div className="mb-4">
-        <label className="block text-xs font-bold mb-2 text-black dark:text-light-gray">
-          Team Name
-        </label>
+
+      <FormField
+        label="Team Name"
+        error={errors.teamName?.message}
+        required
+      >
         <TextField
           placeholder="e.g. Product Team"
           {...register("teamName")}
           error={errors.teamName?.message}
         />
-      </div>
-      <div className="mb-4">
-        <label className="block text-xs font-bold mb-2 text-black dark:text-light-gray">
-          Users
-        </label>
+      </FormField>
+
+      <FormField
+        label="Users"
+        error={errors.users?.message}
+      >
         <Dropdown
           options={users}
           value={selectedUsers}
@@ -99,11 +86,13 @@ const AddTeamModal: React.FC<AddTeamModalProps> = ({
           placeholder="Select users"
           multiSelect={multiUser}
         />
-        {errors.users && (
-          <span className="text-xs text-red-500">{errors.users.message}</span>
-        )}
-      </div>
-      <Button type="submit" className="w-full" variant="primary-l">
+      </FormField>
+
+      <Button 
+        type="submit" 
+        className={MODAL_STYLES.button.full} 
+        variant="primary-l"
+      >
         Create Team
       </Button>
     </form>

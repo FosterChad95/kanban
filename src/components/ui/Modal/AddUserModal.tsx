@@ -1,21 +1,16 @@
 import React from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Button from "../Button/Button";
 import TextField from "../TextField/TextField";
 import { Dropdown } from "../Dropdown/Dropdown";
+import { FormModal, FormField, ErrorDisplay } from "./FormModal";
 import { AddUserSchema, AddUserFormValues } from "../../../schemas/forms";
-import Modal from "./Modal";
+import { ROLE_OPTIONS } from "./utils";
+import type { BaseModalProps } from "./types";
 
-const roleOptions = ["user", "admin"];
-
-type AddUserModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
+interface AddUserModalProps extends BaseModalProps {
   onCreate: (form: AddUserFormValues) => void;
-  loading?: boolean;
-  error?: string | null;
-};
+}
 
 const userResolver = zodResolver(
   AddUserSchema
@@ -51,72 +46,71 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="bg-white dark:bg-[#2b2c37] text-black dark:text-light-gray rounded-lg p-8 w-full max-w-md"
-        style={{ minWidth: 400 }}
+    <FormModal
+      isOpen={isOpen}
+      onClose={onClose}
+      loading={loading}
+      error={error}
+      title="Add New User"
+      onSubmit={handleSubmit(onSubmit)}
+      submitButtonText="Create User"
+      size="md"
+    >
+      <FormField
+        label="Name"
+        error={errors.name?.message}
+        required
       >
-        <div className="flex justify-between items-start mb-6">
-          <h2 className="text-xl font-bold">Add New User</h2>
-        </div>
-        <div className="mb-4">
-          <label className="block text-xs font-bold mb-2">Name</label>
-          <TextField
-            placeholder="e.g. Jane Doe"
-            {...register("name")}
-            error={errors.name?.message}
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-xs font-bold mb-2">Email</label>
-          <TextField
-            placeholder="e.g. jane@example.com"
-            type="email"
-            {...register("email")}
-            error={errors.email?.message}
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-xs font-bold mb-2">Password</label>
-          <TextField
-            placeholder="Enter password"
-            type="password"
-            {...register("password")}
-            error={errors.password?.message}
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-xs font-bold mb-2">Role</label>
-          <Dropdown
-            options={roleOptions}
-            value={selectedRole}
-            onChange={(val) =>
-              setValue("role", val as string, { shouldValidate: true })
-            }
-            placeholder="Select role"
-          />
-          {errors.role && (
-            <span className="text-xs text-red-500">{errors.role.message}</span>
-          )}
-        </div>
-        <Button
-          type="submit"
-          className="w-full"
-          variant="primary-l"
-          disabled={loading}
-        >
-          {loading ? "Creating..." : "Create User"}
-        </Button>
-        {error && (
-          <div className="mt-4 flex justify-center">
-            <span className="bg-red-100 text-red-700 px-4 py-2 rounded shadow">
-              {error}
-            </span>
-          </div>
-        )}
-      </form>
-    </Modal>
+        <TextField
+          placeholder="e.g. Jane Doe"
+          {...register("name")}
+          error={errors.name?.message}
+        />
+      </FormField>
+
+      <FormField
+        label="Email"
+        error={errors.email?.message}
+        required
+      >
+        <TextField
+          placeholder="e.g. jane@example.com"
+          type="email"
+          {...register("email")}
+          error={errors.email?.message}
+        />
+      </FormField>
+
+      <FormField
+        label="Password"
+        error={errors.password?.message}
+        required
+      >
+        <TextField
+          placeholder="Enter password"
+          type="password"
+          {...register("password")}
+          error={errors.password?.message}
+        />
+      </FormField>
+
+      <FormField
+        label="Role"
+        error={errors.role?.message}
+        required
+      >
+        <Dropdown
+          options={[...ROLE_OPTIONS]}
+          value={selectedRole}
+          onChange={(val) =>
+            setValue("role", val as string, { shouldValidate: true })
+          }
+          placeholder="Select role"
+        />
+      </FormField>
+
+      <ErrorDisplay error={error} className="mt-4 flex justify-center" />
+    </FormModal>
   );
 };
 

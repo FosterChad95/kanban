@@ -1,4 +1,3 @@
-import prisma from "@/lib/prisma";
 import { 
   withAdminAuth, 
   withAdminAuthAndValidation, 
@@ -8,6 +7,8 @@ import {
   validateParams 
 } from "@/lib/api-utils";
 import { IdParamSchema, UpdateUserSchema } from "@/schemas/api";
+import { getUserById, deleteUser, isEmailTaken, updateUserProfile } from "@/queries/userQueries";
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants/api";
 
 /**
  * PUT /api/users/:id
@@ -26,35 +27,17 @@ export async function PUT(
 
       // Check if email is already taken by another user
       if (email) {
-        const existingUser = await prisma.user.findFirst({
-          where: {
-            email,
-            NOT: { id: validatedParams.id }
-          }
-        });
-
-        if (existingUser) {
-          return createErrorResponse("Email already in use by another user", 400);
+        const emailTaken = await isEmailTaken(email, validatedParams.id);
+        if (emailTaken) {
+          return createErrorResponse(ERROR_MESSAGES.EMAIL_ALREADY_EXISTS, 400);
         }
       }
 
-      // Update user
-      const updatedUser = await prisma.user.update({
-        where: { id: validatedParams.id },
-        data: {
-          ...(name && { name }),
-          ...(email && { email }),
-          ...(avatar && { image: avatar })
-        },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          image: true,
-          role: true,
-          createdAt: true,
-          updatedAt: true
-        }
+      // Update user using query layer
+      const updatedUser = await updateUserProfile(validatedParams.id, {
+        name,
+        email,
+        avatar,
       });
 
       return createSuccessResponse(updatedUser);
@@ -75,20 +58,17 @@ export async function DELETE(
     if (error) return error;
 
     return withAdminAuth(async () => {
-      // Check if user exists
-      const existingUser = await prisma.user.findUnique({
-        where: { id: validatedParams.id }
-      });
+      // Check if user exists using query layer
+      const existingUser = await getUserById(validatedParams.id);
 
       if (!existingUser) {
-        return createErrorResponse("User not found", 404);
+        return createErrorResponse(ERROR_MESSAGES.USER_NOT_FOUND, 404);
       }
 
-      await prisma.user.delete({
-        where: { id: validatedParams.id },
-      });
+      // Delete user using query layer
+      await deleteUser(validatedParams.id);
       
-      return createSuccessResponse({ message: "User deleted successfully" });
+      return createSuccessResponse({ message: SUCCESS_MESSAGES.USER_DELETED });
     });
   })();
 }

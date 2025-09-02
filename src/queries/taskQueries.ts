@@ -1,16 +1,31 @@
 import { Prisma } from "@prisma/client";
 import prisma from "../lib/prisma";
 import type { Task } from "@/util/types";
+import { TASK_WITH_COLUMN_INCLUDES } from "../lib/prisma-includes";
 
 /**
  * Get all tasks, optionally filtered by columnId.
  * @param columnId Optional column ID to filter tasks.
  */
 export async function getAllTasks(columnId?: string): Promise<Task[]> {
-  return prisma.task.findMany({
+  const tasks = await prisma.task.findMany({
     where: columnId ? { columnId } : undefined,
-    include: { subtasks: true, column: true },
+    include: TASK_WITH_COLUMN_INCLUDES,
+    orderBy: { id: 'desc' },
   });
+  
+  return tasks.map(task => ({
+    id: task.id,
+    title: task.title,
+    description: task.description,
+    columnId: task.columnId,
+    boardId: task.boardId,
+    subtasks: task.subtasks.map(subtask => ({
+      id: subtask.id,
+      title: subtask.title,
+      isCompleted: subtask.isCompleted
+    }))
+  }));
 }
 
 /**
@@ -18,10 +33,25 @@ export async function getAllTasks(columnId?: string): Promise<Task[]> {
  * @param id Task ID
  */
 export async function getTaskById(id: string): Promise<Task | null> {
-  return prisma.task.findUnique({
+  const task = await prisma.task.findUnique({
     where: { id },
-    include: { subtasks: true, column: true },
+    include: TASK_WITH_COLUMN_INCLUDES,
   });
+  
+  if (!task) return null;
+  
+  return {
+    id: task.id,
+    title: task.title,
+    description: task.description,
+    columnId: task.columnId,
+    boardId: task.boardId,
+    subtasks: task.subtasks.map(subtask => ({
+      id: subtask.id,
+      title: subtask.title,
+      isCompleted: subtask.isCompleted
+    }))
+  };
 }
 
 /**
@@ -29,10 +59,23 @@ export async function getTaskById(id: string): Promise<Task | null> {
  * @param data Task creation data (Prisma.TaskCreateInput)
  */
 export async function createTask(data: Prisma.TaskCreateInput): Promise<Task> {
-  return prisma.task.create({
+  const task = await prisma.task.create({
     data,
-    include: { subtasks: true, column: true },
+    include: TASK_WITH_COLUMN_INCLUDES,
   });
+  
+  return {
+    id: task.id,
+    title: task.title,
+    description: task.description,
+    columnId: task.columnId,
+    boardId: task.boardId,
+    subtasks: task.subtasks.map(subtask => ({
+      id: subtask.id,
+      title: subtask.title,
+      isCompleted: subtask.isCompleted
+    }))
+  };
 }
 
 /**
@@ -44,11 +87,24 @@ export async function updateTask(
   id: string,
   data: Prisma.TaskUpdateInput
 ): Promise<Task> {
-  return prisma.task.update({
+  const task = await prisma.task.update({
     where: { id },
     data,
-    include: { subtasks: true, column: true },
+    include: TASK_WITH_COLUMN_INCLUDES,
   });
+  
+  return {
+    id: task.id,
+    title: task.title,
+    description: task.description,
+    columnId: task.columnId,
+    boardId: task.boardId,
+    subtasks: task.subtasks.map(subtask => ({
+      id: subtask.id,
+      title: subtask.title,
+      isCompleted: subtask.isCompleted
+    }))
+  };
 }
 
 /**

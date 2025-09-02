@@ -8,6 +8,7 @@ import { ModalOverlay } from "./shared/ModalOverlay";
 import { useTeams } from "@/hooks/useTeams";
 import { useUsersData, useBoardsData } from "@/hooks/useAdminData";
 import { CreateTeamForm, EditTeamForm, UserOption } from "@/types/admin";
+import type { TeamFormData, BoardOption } from "../ui/Modal/types";
 
 /**
  * Admin section for managing teams with CRUD operations
@@ -117,7 +118,10 @@ export default function TeamsSection() {
       >
         <AddTeamModal
           users={users}
-          onCreate={handleCreateTeam}
+          onCreate={(formData: TeamFormData) => handleCreateTeam({
+            teamName: formData.name,
+            users: formData.users
+          })}
           multiUser={true}
         />
       </ModalOverlay>
@@ -130,7 +134,11 @@ export default function TeamsSection() {
           users={users}
           boards={boards}
           initialBoards={getEditingTeamBoards()}
-          onEdit={handleUpdateTeam}
+          onEdit={(formData: TeamFormData & { boards: BoardOption[] }) => handleUpdateTeam({
+            teamName: formData.name,
+            users: formData.users,
+            boards: formData.boards
+          })}
           multiUser={true}
           isOpen={showEdit}
           onClose={hideEditModal}
@@ -151,6 +159,8 @@ export default function TeamsSection() {
           <DeleteModal
             type="team"
             name={deletingTeam.name}
+            isOpen={showDelete}
+            onClose={hideDeleteModal}
             open={showDelete}
             onDelete={handleDeleteTeam}
             onCancel={hideDeleteModal}

@@ -1,5 +1,4 @@
-import prisma from "@/lib/prisma";
-import { updateTeam } from "@/queries/teamQueries";
+import { updateTeam, getTeamById, deleteTeam } from "@/queries/teamQueries";
 import { 
   withAdminAuth, 
   withAdminAuthAndValidation, 
@@ -55,17 +54,13 @@ export async function DELETE(
 
     return withAdminAuth(async () => {
       // Check if team exists
-      const existingTeam = await prisma.team.findUnique({
-        where: { id: validatedParams.id }
-      });
+      const existingTeam = await getTeamById(validatedParams.id);
 
       if (!existingTeam) {
         return createErrorResponse("Team not found", 404);
       }
 
-      await prisma.team.delete({
-        where: { id: validatedParams.id },
-      });
+      await deleteTeam(validatedParams.id);
 
       return createSuccessResponse({ message: "Team deleted successfully" });
     });

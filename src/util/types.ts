@@ -36,7 +36,18 @@ export interface TaskUpdatePayload {
   subtasks?: SubtaskUpdatePayload[];
 }
 
-export interface Board {
+export interface Column {
+  id: string;
   name: string;
-  columns: { id: string; name: string }[];
+  boardId?: string;
+  tasks?: Task[];
+}
+
+export interface Board {
+  id: string;
+  name: string;
+  columns: Column[];
+  teams?: Array<{ id: string; name: string }>;
+  users?: Array<{ id: string; name: string }>;
+  hasTeam?: boolean;
 }

@@ -3,23 +3,11 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Header from "./content/Header/Header";
 import Sidebar from "./content/Sidebar/Sidebar";
-import type { Board as BoardType, Column, Task, Subtask } from "@prisma/client";
+import type { Board, Column } from "@/util/types";
 import EyeSlashIcon from "./ui/Icon/EyeSlashIcon";
 
 interface MainBoardLayoutProps {
-  boards: Array<
-    BoardType & {
-      columns: Array<
-        Column & {
-          tasks: Array<
-            Task & {
-              subtasks: Subtask[];
-            }
-          >;
-        }
-      >;
-    }
-  >;
+  boards: Board[];
   children: React.ReactNode;
 }
 

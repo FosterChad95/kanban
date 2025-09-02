@@ -32,7 +32,7 @@ export default async function BoardPage({
       name: col.name,
       color: getColor(idx),
       tasks:
-        (col as any).tasks?.map((task: any) => ({
+        col.tasks?.map((task) => ({
           id: task.id,
           title: task.title,
           description: task.description,
@@ -40,7 +40,7 @@ export default async function BoardPage({
           subtasks: (task.subtasks || []).map((s: any) => ({
             id: s.id,
             title: s.title,
-            completed: s.isCompleted,
+            isCompleted: s.isCompleted,
           })),
         })) ?? [],
     })) ?? [];

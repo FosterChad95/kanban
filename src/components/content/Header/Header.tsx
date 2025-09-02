@@ -16,9 +16,7 @@ import DeleteModal from "../../ui/Modal/DeleteModal";
 import type { Board as BaseBoard } from "../../../util/types";
 
 interface Board extends BaseBoard {
-  id?: string;
   active: boolean;
-  hasTeam?: boolean;
 }
 
 interface HeaderProps {
@@ -150,6 +148,8 @@ const Header: React.FC<HeaderProps> = ({ boards, adminOnlyLogo = false }) => {
       <DeleteModal
         type="board"
         name={activeBoard.name}
+        isOpen={true}
+        onClose={closeModal}
         onDelete={async () => {
           try {
             if (!activeBoard.id) throw new Error("Missing board id");

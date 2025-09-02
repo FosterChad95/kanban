@@ -1,5 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import Header, { Board } from "./Header";
+import Header from "./Header";
+import type { Board as BaseBoard } from "@/util/types";
+
+type Board = BaseBoard & {
+  active: boolean;
+};
 import { ModalProvider } from "../../../providers/ModalProvider";
 import Modal from "../../ui/Modal/Modal";
 
@@ -27,6 +32,7 @@ function generateMockBoards(): Board[] {
   const activeIndex = Math.floor(Math.random() * count);
   for (let i = 0; i < count; i++) {
     boards.push({
+      id: `board-${i}`,
       name: randomBoardName(),
       active: i === activeIndex,
       columns: [

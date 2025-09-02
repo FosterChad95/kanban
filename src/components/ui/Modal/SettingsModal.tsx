@@ -1,15 +1,14 @@
 "use client";
 
 import { signOut, useSession } from "next-auth/react";
-import Modal from "./Modal";
+import { Modal } from "./Modal";
 import Button from "../Button/Button";
 import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import type { BaseModalProps, TeamOption } from "./types";
 
-interface SettingsModalProps {
-  isOpen: boolean;
+interface SettingsModalProps extends BaseModalProps {
   darkMode?: boolean;
-  onClose: () => void;
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -20,7 +19,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   const session = useSession();
   const user = session.data?.user;
 
-  const [teams, setTeams] = useState<{ id: string; name: string }[]>([]);
+  const [teams, setTeams] = useState<TeamOption[]>([]);
   const [loadingTeams, setLoadingTeams] = useState(false);
 
   useEffect(() => {
@@ -41,13 +40,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   }, [isOpen]);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal 
+      isOpen={isOpen} 
+      onClose={onClose}
+      title="Settings"
+      size="md"
+      showCloseButton
+    >
       <div
         className={cn("flex flex-col items-center", {
           "text-white": darkMode,
         })}
       >
-        <h2 className="heading-large mb-6 text-main-purple">Settings</h2>
         {user && (
           <div className="mb-6 w-full text-center">
             <div className="mb-2">
@@ -74,6 +78,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           variant="destructive"
           className="w-full"
           onClick={() => signOut()}
+          type="button"
         >
           Sign Out
         </Button>

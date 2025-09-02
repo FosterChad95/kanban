@@ -140,6 +140,8 @@ export default function BoardsSection() {
           <DeleteModal
             type="board"
             name={deletingBoard.name}
+            isOpen={showDelete}
+            onClose={hideDeleteModal}
             open={showDelete}
             onDelete={handleDeleteBoard}
             onCancel={hideDeleteModal}

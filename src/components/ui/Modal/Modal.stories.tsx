@@ -21,7 +21,8 @@ import DeleteModal from "./DeleteModal";
 import AddTaskModal from "./AddTaskModal";
 import AddBoardModal from "./AddBoardModal";
 import EditBoardModal from "./EditBoardModal";
-import AddTeamModal, { UserOption } from "./AddTeamModal";
+import AddTeamModal from "./AddTeamModal";
+import type { UserOption } from "./types";
 
 const mockSubtasks = [
   { id: "1", title: "Subtask 1", completed: true },
@@ -39,12 +40,18 @@ const ViewTaskModalDemo: React.FC = () => {
       onClick={() =>
         openModal(
           <ViewTaskModal
-            title="Demo Task"
-            description="This is a demo task for the ViewTaskModal inside the reusable Modal."
-            subtasks={mockSubtasks}
-            status="Todo"
-            statusOptions={mockStatusOptions}
-            onStatusChange={() => {}}
+            task={{
+              id: "1",
+              title: "Demo Task",
+              description: "This is a demo task for the ViewTaskModal inside the reusable Modal.",
+              columnId: "1",
+              subtasks: mockSubtasks.map(s => ({
+                id: s.id,
+                title: s.title,
+                isCompleted: s.completed
+              }))
+            }}
+            columnOptions={mockStatusOptions.map(status => ({ label: status, value: status }))}
             onEdit={() => {}}
             onDelete={() => {}}
           />
@@ -172,6 +179,8 @@ const DeleteBoardModalDemo: React.FC = () => {
           <DeleteModal
             type="board"
             name="Platform Launch"
+            isOpen={true}
+            onClose={closeModal}
             open={true}
             onDelete={() => {
               alert("Board Deleted");
@@ -201,6 +210,8 @@ const DeleteTaskModalDemo: React.FC = () => {
           <DeleteModal
             type="task"
             name="Build settings UI"
+            isOpen={true}
+            onClose={closeModal}
             open={true}
             onDelete={() => {
               alert("Task Deleted");

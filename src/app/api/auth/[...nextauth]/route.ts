@@ -5,6 +5,8 @@ import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "@/lib/prisma";
+import { getUserByEmailForAuth } from "@/queries/userQueries";
+import { USER_ROLES, SESSION_CONFIG, AUTH_PAGES } from "@/constants/auth";
 
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -28,18 +30,7 @@ export const authOptions: AuthOptions = {
           return null;
         }
 
-        const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email,
-          },
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            hashedPassword: true,
-            role: true,
-          },
-        });
+        const user = await getUserByEmailForAuth(credentials.email);
 
         if (!user || !user.hashedPassword) {
           return null;
@@ -65,12 +56,12 @@ export const authOptions: AuthOptions = {
     }),
   ],
   pages: {
-    signIn: "/signin",
-    error: "/signin",
+    signIn: AUTH_PAGES.SIGN_IN,
+    error: AUTH_PAGES.ERROR,
   },
   debug: process.env.NODE_ENV === "development",
   session: {
-    strategy: "jwt",
+    strategy: SESSION_CONFIG.STRATEGY,
   },
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
@@ -85,14 +76,14 @@ export const authOptions: AuthOptions = {
         token.id = u.id;
         token.email = u.email;
         token.name = u.name;
-        token.role = u.role ?? "USER";
+        token.role = u.role ?? USER_ROLES.USER;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub as string;
-        session.user.role = (token.role as string) ?? "USER";
+        session.user.role = (token.role as string) ?? USER_ROLES.USER;
       }
       return session;
     },

@@ -1,36 +1,15 @@
 import React from "react";
-import {
-  useForm,
-  Controller,
-  useFieldArray,
-  type Resolver,
-} from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller } from "react-hook-form";
 import { Dropdown } from "../Dropdown/Dropdown";
 import Button from "../Button/Button";
 import TextField from "../TextField/TextField";
 import X from "../../../images/X";
-import { AddTaskSchema, AddTaskFormValues } from "../../../schemas/forms";
-
-const addTaskResolver = zodResolver(
-  AddTaskSchema
-) as unknown as Resolver<AddTaskFormValues>;
-
-type SubtaskCreateInput = {
-  title: string;
-  isCompleted: boolean;
-};
+import { useTaskForm, type TaskSubmissionData } from "../../../hooks/useTaskForm";
 
 type AddTaskModalProps = {
   columns: { id: string; name: string }[];
   boardId: string;
-  onCreate: (form: {
-    title: string;
-    description: string;
-    columnId: string;
-    subtasks: SubtaskCreateInput[];
-    boardId: string;
-  }) => void;
+  onCreate: (taskData: TaskSubmissionData) => void;
 };
 
 const AddTaskModal: React.FC<AddTaskModalProps> = ({
@@ -38,53 +17,23 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
   boardId,
   onCreate,
 }) => {
-  const defaultColumnId = columns && columns.length > 0 ? columns[0].id : "";
-
   const {
     register,
     handleSubmit,
     control,
-    formState: { errors },
-  } = useForm<AddTaskFormValues>({
-    resolver: addTaskResolver,
-    defaultValues: {
-      title: "",
-      description: "",
-      columnId: defaultColumnId,
-      subtasks: [
-        { id: crypto.randomUUID(), title: "" },
-        { id: crypto.randomUUID(), title: "" },
-      ],
-    },
+    errors,
+    subtaskFields,
+    addSubtask,
+    removeSubtask,
+  } = useTaskForm({
+    columns,
+    boardId,
+    onSubmit: onCreate,
   });
-
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "subtasks",
-  });
-
-  const onSubmit = (data: AddTaskFormValues) => {
-    const subtasks: SubtaskCreateInput[] = (data.subtasks ?? [])
-      .filter((s) => s.title.trim() !== "")
-      .map((s) => ({
-        title: s.title,
-        isCompleted: false,
-      }));
-
-    const payload = {
-      title: data.title,
-      description: data.description as string,
-      columnId: data.columnId,
-      subtasks,
-      boardId,
-    };
-
-    onCreate(payload);
-  };
 
   return (
     <form
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit}
       className="bg-white dark:bg-[#2b2c37] text-black dark:text-light-gray rounded-lg p-8 w-full max-w-md"
       style={{ minWidth: 400 }}
     >
@@ -115,7 +64,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
           Subtasks
         </label>
         <div className="flex flex-col gap-2">
-          {fields.map((field, idx) => (
+          {subtaskFields.map((field, idx) => (
             <div key={field.id} className="flex items-center gap-2">
               <TextField
                 placeholder={
@@ -129,7 +78,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
                 icon={<X />}
                 iconOnly
                 aria-label="Remove subtask"
-                onClick={() => remove(idx)}
+                onClick={() => removeSubtask(idx)}
                 tabIndex={0}
                 className="text-gray-400 hover:text-red-500"
               />
@@ -140,7 +89,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
           type="button"
           variant="secondary"
           className="w-full mt-3"
-          onClick={() => append({ id: crypto.randomUUID(), title: "" })}
+          onClick={addSubtask}
         >
           + Add New Subtask
         </Button>

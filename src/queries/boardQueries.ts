@@ -1,156 +1,86 @@
 import { Prisma } from "@prisma/client";
 import prisma from "../lib/prisma";
+import { BoardUpdatePayload } from "../schemas/api";
+import type { Board } from "../util/types";
+import { BOARD_FULL_INCLUDES } from "../lib/prisma-includes";
+import { transformBoards, transformBoard } from "../util/data-transformers";
+import { USER_ROLES } from "../constants/auth";
 
 /**
  * Get all boards.
  */
-export async function getAllBoards() {
+export async function getAllBoards(): Promise<Board[]> {
   const boards = await prisma.board.findMany({
-    include: {
-      columns: {
-        include: {
-          tasks: {
-            include: {
-              subtasks: true,
-            },
-          },
-        },
-      },
-      teams: {
-        include: {
-          team: true,
-        },
-      },
-      users: {
-        include: {
-          user: true,
-        },
-      },
-    },
+    include: BOARD_FULL_INCLUDES,
+    orderBy: { name: 'asc' },
   });
 
-  // Normalize teams to simple { id, name } shape for consumers
-  return boards.map((b) => ({
-    ...b,
-    teams: Array.isArray(b.teams)
-      ? b.teams.map((tb) => ({ id: tb.team.id, name: tb.team.name }))
-      : [],
-  }));
+  return transformBoards(boards);
 }
 
 /**
  * Get all boards for a user: boards from user's teams and user's private boards.
  * @param user User object with id and role
  */
-export async function getBoardsForUser(user: { id: string; role: string }) {
-  if (user.role === "ADMIN") {
+export async function getBoardsForUser(user: { id: string; role: string }): Promise<Board[]> {
+  if (user.role === USER_ROLES.ADMIN) {
     // Admins see all boards
     return getAllBoards();
   }
-  const userId = user.id;
-  // Get all team IDs for the user
-  const userTeams = await prisma.userTeam.findMany({
-    where: { userId },
-    select: { teamId: true },
-  });
-  const teamIds = userTeams.map((ut) => ut.teamId);
 
-  // Get all board IDs for those teams
-  const teamBoards = await prisma.teamBoard.findMany({
-    where: { teamId: { in: teamIds.length > 0 ? teamIds : [""] } },
-    select: { boardId: true },
-  });
-  const teamBoardIds = teamBoards.map((tb) => tb.boardId);
-
-  // Get all board IDs for private boards (user is a direct member)
-  const userBoards = await prisma.userBoard.findMany({
-    where: { userId },
-    select: { boardId: true },
-  });
-  const userBoardIds = userBoards.map((ub) => ub.boardId);
-
-  // Merge and deduplicate board IDs
-  const allBoardIds = Array.from(new Set([...teamBoardIds, ...userBoardIds]));
-
-  // Fetch all boards with those IDs
+  // Optimized single query using Prisma's advanced where conditions
+  // This finds boards where the user either:
+  // 1. Is directly associated via UserBoard
+  // 2. Is a member of a team that has access to the board via TeamBoard
   const boards = await prisma.board.findMany({
-    where: { id: { in: allBoardIds.length > 0 ? allBoardIds : [""] } },
-    include: {
-      columns: {
-        include: {
-          tasks: {
-            include: {
-              subtasks: true,
+    where: {
+      OR: [
+        // Boards where user is directly associated
+        {
+          users: {
+            some: {
+              userId: user.id,
             },
           },
         },
-      },
-      teams: {
-        include: {
-          team: true,
+        // Boards accessible through team membership
+        {
+          teams: {
+            some: {
+              team: {
+                users: {
+                  some: {
+                    userId: user.id,
+                  },
+                },
+              },
+            },
+          },
         },
-      },
-      users: {
-        include: {
-          user: true,
-        },
-      },
+      ],
     },
+    include: BOARD_FULL_INCLUDES,
+    // Remove duplicates at database level and add consistent ordering
+    distinct: ['id'],
+    orderBy: { name: 'asc' },
   });
 
-  // Normalize teams to simple { id, name } shape for consumers
-  return boards.map((b) => ({
-    ...b,
-    teams: Array.isArray(b.teams)
-      ? b.teams.map((tb) => ({ id: tb.team.id, name: tb.team.name }))
-      : [],
-  }));
+  return transformBoards(boards);
 }
 
 /**
  * Get a single board by ID.
  * @param id Board ID
  */
-export async function getBoardById(id: string) {
+export async function getBoardById(id: string): Promise<Board | null> {
   const board = await prisma.board.findUnique({
     where: { id },
-    include: {
-      columns: {
-        include: {
-          tasks: {
-            include: {
-              subtasks: true,
-            },
-          },
-        },
-      },
-      teams: {
-        include: {
-          team: true,
-        },
-      },
-      users: {
-        include: {
-          user: true,
-        },
-      },
-      Task: {
-        include: {
-          subtasks: true,
-        },
-      },
-    },
+    include: BOARD_FULL_INCLUDES,
   });
 
   if (!board) return null;
 
-  return {
-    ...board,
-    teams: Array.isArray(board.teams)
-      ? board.teams.map((tb) => ({ id: tb.team.id, name: tb.team.name }))
-      : [],
-    hasTeam: Array.isArray(board.teams) && board.teams.length > 0,
-  };
+  return transformBoard(board);
 }
 
 /**
@@ -165,121 +95,116 @@ export async function createBoard(data: Prisma.BoardCreateInput) {
 }
 
 /**
+ * Update board basic information (name, etc.).
+ * @param tx Prisma transaction client
+ * @param id Board ID
+ * @param name New board name
+ */
+async function updateBoardBasicInfo(
+  tx: Prisma.TransactionClient,
+  id: string, 
+  name?: string
+) {
+  if (typeof name === "string") {
+    await tx.board.update({
+      where: { id },
+      data: { name },
+    });
+  }
+}
+
+/**
+ * Update board team associations.
+ * @param tx Prisma transaction client
+ * @param id Board ID
+ * @param teamIds Array of team IDs to associate with the board
+ */
+async function updateBoardTeamAssociations(
+  tx: Prisma.TransactionClient,
+  id: string,
+  teamIds?: string[]
+) {
+  if (!Array.isArray(teamIds)) return;
+
+  // Remove all existing links for this board
+  await tx.teamBoard.deleteMany({ where: { boardId: id } });
+  
+  // Recreate links individually to ensure relational creation works reliably
+  for (const teamId of teamIds) {
+    if (!teamId) continue;
+    await tx.teamBoard.create({
+      data: { teamId, boardId: id },
+    });
+  }
+}
+
+/**
+ * Update board columns.
+ * @param tx Prisma transaction client
+ * @param id Board ID
+ * @param columns Array of column data to sync
+ */
+async function updateBoardColumns(
+  tx: Prisma.TransactionClient,
+  id: string,
+  columns?: Array<{ id?: string; name: string }>
+) {
+  if (!Array.isArray(columns)) return;
+
+  // Fetch existing columns for this board
+  const existing = await tx.column.findMany({
+    where: { boardId: id },
+    select: { id: true },
+  });
+  const existingIds = existing.map((c) => c.id);
+  const incomingIds = columns
+    .filter((c) => c?.id)
+    .map((c) => c.id);
+
+  // Delete columns that were removed in the UI
+  const toDelete = existingIds.filter((eid) => !incomingIds.includes(eid));
+  if (toDelete.length > 0) {
+    await tx.column.deleteMany({ where: { id: { in: toDelete } } });
+  }
+
+  // Upsert incoming columns: update if id exists, otherwise create
+  for (const col of columns) {
+    if (col?.id) {
+      await tx.column.update({
+        where: { id: col.id },
+        data: { name: col.name },
+      });
+    } else {
+      await tx.column.create({
+        data: { name: col.name, boardId: id },
+      });
+    }
+  }
+}
+
+/**
  * Update an existing board.
  * @param id Board ID
- * @param data Board update data (Prisma.BoardUpdateInput)
+ * @param data Board update data (BoardUpdatePayload)
  */
-export async function updateBoard(id: string, data: Prisma.BoardUpdateInput) {
-  // The incoming `data` from the API is a simple shape like:
-  // { name?: string, columns?: { id?: string, name: string }[], teamIds?: string[] }
-  // Prisma expects nested update objects for relations. Convert the simple shape
-  // into explicit create/update/delete operations inside a transaction.
-  const payload = data as any;
-
+export async function updateBoard(id: string, data: BoardUpdatePayload) {
   return prisma.$transaction(async (tx) => {
-    // Update board name if provided
-    if (typeof payload.name === "string") {
-      await tx.board.update({
-        where: { id },
-        data: { name: payload.name },
-      });
-    }
-
-    // Sync teams (TeamBoard join table) if teamIds provided
-    if (Array.isArray(payload.teamIds)) {
-      // Remove all existing links for this board
-      await tx.teamBoard.deleteMany({ where: { boardId: id } });
-      // Recreate links individually to ensure relational creation works reliably
-      for (const teamId of payload.teamIds) {
-        if (!teamId) continue;
-        await tx.teamBoard.create({
-          data: { teamId, boardId: id },
-        });
-      }
-    }
-
-    // Sync columns if provided
-    if (Array.isArray(payload.columns)) {
-      // Fetch existing columns for this board
-      const existing = await tx.column.findMany({
-        where: { boardId: id },
-        select: { id: true },
-      });
-      const existingIds = existing.map((c) => c.id);
-      const incomingIds = payload.columns
-        .filter((c: any) => c?.id)
-        .map((c: any) => c.id);
-
-      // Delete columns that were removed in the UI
-      const toDelete = existingIds.filter((eid) => !incomingIds.includes(eid));
-      if (toDelete.length > 0) {
-        await tx.column.deleteMany({ where: { id: { in: toDelete } } });
-      }
-
-      // Upsert incoming columns: update if id exists, otherwise create
-      for (const col of payload.columns) {
-        if (col?.id) {
-          // If name is blank, skip update (or you may choose to delete)
-          await tx.column.update({
-            where: { id: col.id },
-            data: { name: col.name },
-          });
-        } else {
-          await tx.column.create({
-            data: { name: col.name, boardId: id },
-          });
-        }
-      }
-    }
+    // Update board components using focused helper functions
+    await updateBoardBasicInfo(tx, id, data.name);
+    await updateBoardTeamAssociations(tx, id, data.teamIds);
+    await updateBoardColumns(tx, id, data.columns);
 
     // Return the updated board with the same include structure as other queries
     const updated = await tx.board.findUnique({
       where: { id },
-      include: {
-        columns: {
-          include: {
-            tasks: {
-              include: {
-                subtasks: true,
-              },
-            },
-          },
-        },
-        teams: {
-          include: {
-            team: true,
-          },
-        },
-        users: {
-          include: {
-            user: true,
-          },
-        },
-        Task: {
-          include: {
-            subtasks: true,
-          },
-        },
-      },
+      include: BOARD_FULL_INCLUDES,
     });
 
     if (!updated) {
       throw new Error("Board not found");
     }
 
-    // Map teams to the shape consumers expect (team objects under `teams`)
-    // If other parts of the app expect `teams` as { id, name } arrays, transform accordingly.
-    const mapped = {
-      ...updated,
-      teams: Array.isArray(updated.teams)
-        ? updated.teams.map((tb) => ({
-            id: tb.team.id,
-            name: tb.team.name,
-          }))
-        : [],
-    };
-
-    return mapped;
+    return transformBoard(updated);
   });
 }
 
@@ -290,5 +215,41 @@ export async function updateBoard(id: string, data: Prisma.BoardUpdateInput) {
 export async function deleteBoard(id: string) {
   return prisma.board.delete({
     where: { id },
+  });
+}
+
+/**
+ * Create a board and link it to a user.
+ * @param boardData Board creation data
+ * @param userId User ID to link the board to
+ */
+export async function createBoardForUser(
+  boardData: {
+    name: string;
+    columns?: Array<{ name: string }>;
+  },
+  userId: string
+) {
+  return prisma.$transaction(async (tx) => {
+    // Create the board
+    const board = await tx.board.create({
+      data: {
+        name: boardData.name,
+        ...(boardData.columns && boardData.columns.length > 0
+          ? { columns: { create: boardData.columns } }
+          : {}),
+      },
+      include: BOARD_FULL_INCLUDES,
+    });
+
+    // Link the board to the user
+    await tx.userBoard.create({
+      data: {
+        userId,
+        boardId: board.id,
+      },
+    });
+
+    return transformBoard(board);
   });
 }

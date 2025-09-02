@@ -80,10 +80,10 @@ export function useBoardsData() {
     try {
       setLoading(true);
       setError(null);
-      const data = await boardsApi.fetchAll<any[]>();
+      const data = await boardsApi.fetchAll() as Array<{ id: string; name: string }>;
       // Transform to simple board options with just id and name
       const boardOptions = Array.isArray(data) 
-        ? data.map(b => ({ id: b.id, name: b.name }))
+        ? data.map((b: { id: string; name: string }) => ({ id: b.id, name: b.name }))
         : [];
       setBoards(boardOptions);
     } catch (err) {
