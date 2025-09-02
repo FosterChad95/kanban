@@ -1,6 +1,16 @@
-import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth";
+import { addUserToTeam } from "@/queries/teamQueries";
+import { 
+  withAdminAuthAndValidation, 
+  withErrorHandling, 
+  createSuccessResponse,
+  createErrorResponse 
+} from "@/lib/api-utils";
+import { z } from "zod";
+
+const AddUserToTeamSchema = z.object({
+  teamId: z.string().min(1),
+  userId: z.string().min(1),
+});
 
 /**
  * POST /api/teams/add-user
@@ -8,52 +18,17 @@ import { getCurrentUser } from "@/lib/auth";
  * Only admins can add users to teams.
  */
 export async function POST(req: Request) {
-  try {
-    const user = await getCurrentUser();
-    if (!user || user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { teamId, userId } = await req.json();
-
-    if (!teamId || !userId) {
-      return NextResponse.json(
-        { error: "Missing teamId or userId" },
-        { status: 400 }
-      );
-    }
-
-    // Check if the user is already in the team
-    const existing = await prisma.userTeam.findUnique({
-      where: {
-        userId_teamId: {
-          userId,
-          teamId,
-        },
-      },
+  return withErrorHandling(async () => {
+    return withAdminAuthAndValidation(req, AddUserToTeamSchema, async (body) => {
+      try {
+        const userTeam = await addUserToTeam(body.userId, body.teamId);
+        return createSuccessResponse(userTeam, 201);
+      } catch (error) {
+        if (error instanceof Error && error.message === "User already in team") {
+          return createErrorResponse("User already in team", 400);
+        }
+        throw error;
+      }
     });
-
-    if (existing) {
-      return NextResponse.json(
-        { error: "User already in team" },
-        { status: 400 }
-      );
-    }
-
-    // Add user to team
-    const userTeam = await prisma.userTeam.create({
-      data: {
-        userId,
-        teamId,
-      },
-    });
-
-    return NextResponse.json(userTeam, { status: 201 });
-  } catch (err) {
-    console.error("POST /api/teams/add-user error:", err);
-    return NextResponse.json(
-      { error: "Failed to add user to team" },
-      { status: 500 }
-    );
-  }
+  })();
 }

@@ -1,35 +1,14 @@
-import { Prisma } from "@prisma/client";
+// Removed unused Prisma import - using direct types from includes
 import prisma from "../lib/prisma";
+import { TEAM_WITH_RELATIONS_INCLUDES } from "../lib/prisma-includes";
 
 /**
  * Get all teams.
  */
 export async function getAllTeams() {
   return prisma.team.findMany({
-    include: {
-      users: {
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              image: true
-            }
-          }
-        }
-      },
-      boards: {
-        include: {
-          board: {
-            select: {
-              id: true,
-              name: true
-            }
-          }
-        }
-      }
-    },
+    include: TEAM_WITH_RELATIONS_INCLUDES,
+    orderBy: { name: 'asc' },
   });
 }
 
@@ -40,30 +19,7 @@ export async function getAllTeams() {
 export async function getTeamById(id: string) {
   return prisma.team.findUnique({
     where: { id },
-    include: {
-      users: {
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              image: true
-            }
-          }
-        }
-      },
-      boards: {
-        include: {
-          board: {
-            select: {
-              id: true,
-              name: true
-            }
-          }
-        }
-      }
-    },
+    include: TEAM_WITH_RELATIONS_INCLUDES,
   });
 }
 
@@ -107,30 +63,7 @@ export async function createTeam(data: {
     // Return the team with all relations
     return tx.team.findUnique({
       where: { id: team.id },
-      include: {
-        users: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                image: true
-              }
-            }
-          }
-        },
-        boards: {
-          include: {
-            board: {
-              select: {
-                id: true,
-                name: true
-              }
-            }
-          }
-        }
-      },
+      include: TEAM_WITH_RELATIONS_INCLUDES,
     });
   });
 }
@@ -193,30 +126,7 @@ export async function updateTeam(id: string, data: {
     // Return the updated team with all relations
     return tx.team.findUnique({
       where: { id },
-      include: {
-        users: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                image: true
-              }
-            }
-          }
-        },
-        boards: {
-          include: {
-            board: {
-              select: {
-                id: true,
-                name: true
-              }
-            }
-          }
-        }
-      },
+      include: TEAM_WITH_RELATIONS_INCLUDES,
     });
   });
 }
@@ -236,37 +146,62 @@ export async function deleteTeam(id: string) {
  * @param userId User ID
  */
 export async function getTeamsForUser(userId: string) {
+  // Optimized: directly query teams with a user filter instead of querying join table first
+  return prisma.team.findMany({
+    where: {
+      users: {
+        some: {
+          userId: userId,
+        },
+      },
+    },
+    include: TEAM_WITH_RELATIONS_INCLUDES,
+    orderBy: { name: 'asc' },
+  });
+}
+
+/**
+ * Get teams for a specific user in simple format (id and name only).
+ * @param userId User ID
+ */
+export async function getTeamsForUserSimple(userId: string) {
   const userTeams = await prisma.userTeam.findMany({
     where: { userId },
     include: {
       team: {
-        include: {
-          users: {
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
-                  image: true
-                }
-              }
-            }
-          },
-          boards: {
-            include: {
-              board: {
-                select: {
-                  id: true,
-                  name: true
-                }
-              }
-            }
-          }
-        }
-      }
+        select: { id: true, name: true },
+      },
     },
   });
 
-  return userTeams.map(ut => ut.team);
+  return userTeams.map((ut) => ut.team);
+}
+
+/**
+ * Add a user to a team.
+ * @param userId User ID
+ * @param teamId Team ID
+ */
+export async function addUserToTeam(userId: string, teamId: string) {
+  // Check if the user is already in the team
+  const existing = await prisma.userTeam.findUnique({
+    where: {
+      userId_teamId: {
+        userId,
+        teamId,
+      },
+    },
+  });
+
+  if (existing) {
+    throw new Error("User already in team");
+  }
+
+  // Add user to team
+  return prisma.userTeam.create({
+    data: {
+      userId,
+      teamId,
+    },
+  });
 }

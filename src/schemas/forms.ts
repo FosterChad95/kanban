@@ -1,20 +1,24 @@
 import { z } from "zod";
+import {
+  BaseSubtaskSchema,
+  BaseBoardSchema,
+  BaseUserSchema,
+  BaseTeamSchema,
+  UserCredentialsSchema,
+  withMaxLength,
+} from "./base";
 
 /**
- * Schemas used with react-hook-form + zodResolver across the app.
- * Adjust constraints as needed for your UX rules.
+ * Form-specific schemas that extend base schemas with form-specific validation
+ * and transformations for use with react-hook-form.
  */
 
-/* Subtask schema */
-export const SubtaskSchema = z.object({
-  id: z.string().optional(),
-  title: z
-    .string()
-    .min(1, { message: "Subtask title is required" })
-    .max(200, { message: "Subtask title is too long" }),
+/* Enhanced subtask schema with form-specific constraints */
+export const SubtaskSchema = BaseSubtaskSchema.extend({
+  title: withMaxLength(200, "Subtask title is too long").min(1, { message: "Subtask title is required" }),
 });
 
-/* Add Task schema */
+/* Add Task schema with form-specific transformations */
 export const AddTaskSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
   description: z.string().optional().or(z.literal("")),
@@ -31,9 +35,9 @@ export const AddTaskSchema = z.object({
     ),
 });
 
-/* Add Team schema */
-export const AddTeamSchema = z.object({
-  teamName: z.string().min(1, { message: "Team name is required" }),
+/* Add Team schema with form-specific user structure */
+export const AddTeamSchema = BaseTeamSchema.extend({
+  teamName: BaseTeamSchema.shape.name, // Use base name validation but with different property name
   users: z
     .array(
       z.object({
@@ -45,13 +49,13 @@ export const AddTeamSchema = z.object({
     )
     .optional()
     .default([]),
-});
+}).omit({ name: true }); // Remove the base name field since we're using teamName
 
 /* Edit Team schema - same as Add Team but for editing */
 export const EditTeamSchema = AddTeamSchema;
 
-/* Add/Edit Board schema */
-export const BoardSchema = z.object({
+/* Add/Edit Board schema - extends base with form-specific defaults */
+export const BoardSchema = BaseBoardSchema.extend({
   name: z.string().min(1, { message: "Board name is required" }),
   columns: z
     .array(
@@ -64,20 +68,14 @@ export const BoardSchema = z.object({
     .default([]),
 });
 
-/* Add User schema (for admin user creation) */
-export const AddUserSchema = z.object({
-  name: z.string().min(1, { message: "Name is required" }),
-  email: z.string().email({ message: "Invalid email address" }),
-  password: z
-    .string()
-    .min(6, { message: "Password must be at least 6 characters" }),
+/* Add User schema (for admin user creation) - extends base with role */
+export const AddUserSchema = BaseUserSchema.extend({
+  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
   role: z.string().min(1, { message: "Role is required" }),
 });
 
-/* Edit User schema (for admin user update) */
-export const EditUserSchema = z.object({
-  name: z.string().min(1, { message: "Name is required" }),
-  email: z.string().email({ message: "Invalid email address" }),
+/* Edit User schema (for admin user update) - extends base with avatar */
+export const EditUserSchema = BaseUserSchema.extend({
   avatar: z
     .string()
     .url({ message: "Invalid avatar URL" })
@@ -85,22 +83,17 @@ export const EditUserSchema = z.object({
     .or(z.literal("")),
 });
 
-/* Sign up schema */
-export const SignUpSchema = z.object({
+/* Sign up schema - extends user credentials with optional name */
+export const SignUpSchema = UserCredentialsSchema.extend({
   name: z.string().optional().or(z.literal("")),
-  email: z.string().email({ message: "Invalid email address" }),
-  password: z
-    .string()
-    .min(6, { message: "Password must be at least 6 characters" }),
 });
 
-/* Sign in schema */
-export const SignInSchema = z.object({
-  email: z.email({ message: "Invalid email address" }),
+/* Sign in schema - uses base credentials with form-specific error messages */
+export const SignInSchema = UserCredentialsSchema.extend({
   password: z.string().min(1, { message: "Password is required" }),
 });
 
-/* View Task / Edit Task schema */
+/* View Task / Edit Task schema - uses base subtask with completion */
 export const SubtaskWithCompletedSchema = SubtaskSchema.extend({
   completed: z.boolean().default(false),
 });

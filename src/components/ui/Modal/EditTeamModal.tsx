@@ -1,35 +1,22 @@
 import React from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Button from "../Button/Button";
 import TextField from "../TextField/TextField";
 import { Dropdown } from "../Dropdown/Dropdown";
+import { FormModal, FormField } from "./FormModal";
 import { EditTeamSchema, EditTeamFormValues } from "../../../schemas/forms";
-import { UserOption } from "./AddTeamModal";
-import Modal from "./Modal";
+import { filterUserOptions, filterBoardOptions } from "./utils";
+import type { BaseModalProps, UserOption, BoardOption, TeamFormData } from "./types";
 
-type BoardOption = {
-  id: string;
-  name: string;
-};
-
-type EditTeamModalProps = {
+interface EditTeamModalProps extends BaseModalProps {
   initialTeamName: string;
   initialUsers: UserOption[];
   users: UserOption[];
   initialBoards: BoardOption[];
   boards: BoardOption[];
-  onEdit: (form: {
-    teamName: string;
-    users: UserOption[];
-    boards: BoardOption[];
-  }) => void;
+  onEdit: (form: TeamFormData & { boards: BoardOption[] }) => void;
   multiUser?: boolean;
-  isOpen: boolean;
-  onClose: () => void;
-  loading?: boolean;
-  error?: string | null;
-};
+}
 
 const teamResolver = zodResolver(
   EditTeamSchema
@@ -80,96 +67,72 @@ const EditTeamModal: React.FC<EditTeamModalProps> = ({
     }
   }, [isOpen, initialUsers, setValue]);
 
-  // Type guard to ensure only UserOption[]
-  const filterUserOptions = (arr: unknown): UserOption[] =>
-    Array.isArray(arr)
-      ? arr.filter(
-          (u): u is UserOption =>
-            typeof u === "object" && u !== null && "id" in u && "name" in u
-        )
-      : [];
-
-  // Type guard to ensure only BoardOption[]
-  const filterBoardOptions = (arr: unknown): BoardOption[] =>
-    Array.isArray(arr)
-      ? arr.filter(
-          (b): b is BoardOption =>
-            typeof b === "object" && b !== null && "id" in b && "name" in b
-        )
-      : [];
-
   const onSubmit = (data: EditTeamFormValues) => {
     onEdit({
-      teamName: data.teamName,
+      name: data.teamName, // Map teamName to name for consistency
       users: filterUserOptions(data.users ?? []),
       boards: filterBoardOptions(selectedBoards ?? []),
     });
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="bg-white dark:bg-[#2b2c37] text-black dark:text-light-gray rounded-lg p-8 w-full max-w-md"
-        style={{ minWidth: 400 }}
+    <FormModal
+      isOpen={isOpen}
+      onClose={onClose}
+      loading={loading}
+      error={error}
+      title="Edit Team"
+      onSubmit={handleSubmit(onSubmit)}
+      submitButtonText="Save Changes"
+      size="md"
+    >
+      <FormField
+        label="Team Name"
+        error={errors.teamName?.message}
+        required
       >
-        <div className="flex justify-between items-start mb-6">
-          <h2 className="text-xl font-bold">Edit Team</h2>
-        </div>
-        <div className="mb-4">
-          <label className="block text-xs font-bold mb-2">Team Name</label>
-          <TextField
-            placeholder="e.g. Product Team"
-            {...register("teamName")}
-            error={errors.teamName?.message}
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-xs font-bold mb-2">Users</label>
-          <Dropdown
-            options={users}
-            value={selectedUsers}
-            onChange={(val) =>
-              setValue(
-                "users",
-                filterUserOptions(Array.isArray(val) ? val : [val]),
-                { shouldValidate: true }
-              )
-            }
-            placeholder="Select users"
-            multiSelect={multiUser}
-          />
-          {errors.users && (
-            <span className="text-xs text-red-500">{errors.users.message}</span>
-          )}
-        </div>
-        <div className="mb-4">
-          <label className="block text-xs font-bold mb-2">Boards</label>
-          <Dropdown
-            options={boards}
-            value={selectedBoards}
-            onChange={(val) =>
-              setSelectedBoards(
-                filterBoardOptions(Array.isArray(val) ? val : [val])
-              )
-            }
-            placeholder="Select boards"
-            multiSelect={true}
-          />
-        </div>
-        {error && (
-          <div className="mb-4 text-center text-red-500">{error}</div>
-        )}
-        <Button 
-          type="submit" 
-          className="w-full" 
-          variant="primary-l"
-          disabled={loading}
-        >
-          {loading ? "Saving..." : "Save Changes"}
-        </Button>
-      </form>
-    </Modal>
+        <TextField
+          placeholder="e.g. Product Team"
+          {...register("teamName")}
+          error={errors.teamName?.message}
+        />
+      </FormField>
+
+      <FormField
+        label="Users"
+        error={errors.users?.message}
+      >
+        <Dropdown
+          options={users}
+          value={selectedUsers}
+          onChange={(val) =>
+            setValue(
+              "users",
+              filterUserOptions(Array.isArray(val) ? val : [val]),
+              { shouldValidate: true }
+            )
+          }
+          placeholder="Select users"
+          multiSelect={multiUser}
+        />
+      </FormField>
+
+      <FormField
+        label="Boards"
+      >
+        <Dropdown
+          options={boards}
+          value={selectedBoards}
+          onChange={(val) =>
+            setSelectedBoards(
+              filterBoardOptions(Array.isArray(val) ? val : [val])
+            )
+          }
+          placeholder="Select boards"
+          multiSelect={true}
+        />
+      </FormField>
+    </FormModal>
   );
 };
 

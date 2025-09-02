@@ -38,7 +38,7 @@ export function mapTaskToViewTaskForm(task: Task): ViewTaskFormValues {
 /**
  * Map BoardFormValues (form data) to Board (domain type)
  */
-export function mapBoardFormToBoard(form: BoardFormValues): Board {
+export function mapBoardFormToBoard(form: BoardFormValues): Omit<Board, 'id'> & { id?: string } {
   return {
     name: form.name,
     columns: form.columns.map((col) => ({

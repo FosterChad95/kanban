@@ -1,93 +1,30 @@
 import { z } from "zod";
+import {
+  IdParamSchema as BaseIdParamSchema,
+  BoardCreateSchema,
+  BoardUpdateSchema,
+  TaskCreateSchema,
+  TaskUpdateSchema,
+  TeamCreateSchema,
+  TeamUpdateSchema,
+  UserCreateSchema,
+  UserUpdateSchema,
+} from "./base";
 
-// Common schemas
-export const IdParamSchema = z.object({
-  id: z.string().min(1, "ID is required"),
-});
+// Re-export base schemas with API-specific adjustments
+export const IdParamSchema = BaseIdParamSchema;
 
-// Board schemas
-export const CreateBoardSchema = z.object({
-  name: z.string().min(1, "Board name is required").trim(),
-  columns: z
-    .array(
-      z.object({
-        name: z.string().min(1, "Column name is required").trim(),
-      })
-    )
-    .optional()
-    .default([]),
-});
+// Board schemas with API-specific modifications
+export const CreateBoardSchema = BoardCreateSchema;
+export const UpdateBoardSchema = BoardUpdateSchema.passthrough(); // Allow additional properties for Prisma compatibility
 
-export const UpdateBoardSchema = z.object({
-  name: z.string().min(1, "Board name is required").trim().optional(),
-  columns: z
-    .array(
-      z.object({
-        id: z.string().optional(),
-        name: z.string().min(1, "Column name is required").trim(),
-      })
-    )
-    .optional(),
-  teamIds: z.array(z.string()).optional(),
-}).passthrough(); // Allow additional properties for Prisma compatibility
-
-// Task schemas
-export const CreateTaskSchema = z.object({
-  title: z.string().min(1, "Task title is required").trim(),
-  description: z.string().optional(),
-  columnId: z.string().min(1, "Column ID is required"),
-  subtasks: z
-    .array(
-      z.object({
-        title: z.string().min(1, "Subtask title is required").trim(),
-        isCompleted: z.boolean().default(false),
-      })
-    )
-    .optional()
-    .default([]),
-}).passthrough(); // Allow additional properties for Prisma compatibility
-
-export const UpdateTaskSchema = z.object({
-  title: z.string().min(1, "Task title is required").trim().optional(),
-  description: z.string().optional(),
-  columnId: z.string().min(1, "Column ID is required").optional(),
-  subtasks: z
-    .array(
-      z.object({
-        id: z.string(),
-        title: z.string().min(1, "Subtask title is required").trim(),
-        completed: z.boolean(),
-      })
-    )
-    .optional(),
-}).passthrough(); // Allow additional properties for Prisma compatibility
+// Task schemas with API-specific modifications
+export const CreateTaskSchema = TaskCreateSchema.passthrough(); // Allow additional properties for Prisma compatibility
+export const UpdateTaskSchema = TaskUpdateSchema.passthrough(); // Allow additional properties for Prisma compatibility
 
 // Team schemas
-export const CreateTeamSchema = z.object({
-  name: z.string().min(1, "Team name is required").trim(),
-});
-
-export const UpdateTeamSchema = z.object({
-  teamName: z.string().min(1, "Team name is required").trim(),
-  users: z
-    .array(
-      z.object({
-        id: z.string(),
-        name: z.string().optional(),
-      })
-    )
-    .optional()
-    .default([]),
-  boards: z
-    .array(
-      z.object({
-        id: z.string(),
-        name: z.string().optional(),
-      })
-    )
-    .optional()
-    .default([]),
-});
+export const CreateTeamSchema = TeamCreateSchema;
+export const UpdateTeamSchema = TeamUpdateSchema;
 
 export const AddUserToTeamSchema = z.object({
   userId: z.string().min(1, "User ID is required"),
@@ -95,17 +32,10 @@ export const AddUserToTeamSchema = z.object({
 });
 
 // User schemas
-export const SignupSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+export const SignupSchema = UserCreateSchema.extend({
   name: z.string().min(1, "Name is required").trim().optional(),
 });
-
-export const UpdateUserSchema = z.object({
-  name: z.string().min(1, "Name is required").trim().optional(),
-  email: z.string().email("Invalid email address").optional(),
-  avatar: z.string().url("Invalid avatar URL").optional(),
-});
+export const UpdateUserSchema = UserUpdateSchema;
 
 // Export type helpers
 export type CreateBoardData = z.infer<typeof CreateBoardSchema>;
@@ -117,3 +47,13 @@ export type UpdateTeamData = z.infer<typeof UpdateTeamSchema>;
 export type SignupData = z.infer<typeof SignupSchema>;
 export type UpdateUserData = z.infer<typeof UpdateUserSchema>;
 export type IdParam = z.infer<typeof IdParamSchema>;
+
+// Extended board update interface for internal use
+export interface BoardUpdatePayload {
+  name?: string;
+  columns?: Array<{
+    id?: string;
+    name: string;
+  }>;
+  teamIds?: string[];
+}

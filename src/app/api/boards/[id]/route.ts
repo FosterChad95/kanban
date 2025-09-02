@@ -1,17 +1,16 @@
 import {
-  getBoardById,
   updateBoard,
   deleteBoard,
-  getBoardsForUser,
 } from "../../../../queries/boardQueries";
 import { 
-  withAuth, 
-  withAuthAndValidation, 
   withErrorHandling, 
   createSuccessResponse, 
   createErrorResponse,
-  validateParams 
+  validateParams,
+  withBoardAuthorization,
+  withBoardAuthorizationAndValidation
 } from "../../../../lib/api-utils";
+import { ERROR_MESSAGES } from "../../../../constants/api";
 import { IdParamSchema, UpdateBoardSchema } from "../../../../schemas/api";
 
 /**
@@ -26,23 +25,7 @@ export async function GET(
     const { data: validatedParams, error } = await validateParams(params, IdParamSchema);
     if (error) return error;
 
-    return withAuth(async (user) => {
-      // Check if user has access to this board
-      const accessibleBoards = await getBoardsForUser({
-        id: user.id,
-        role: user.role,
-      });
-      const accessibleBoardIds = accessibleBoards.map((b) => b.id);
-
-      if (!accessibleBoardIds.includes(validatedParams.id)) {
-        return createErrorResponse("Board not found or access denied", 403);
-      }
-
-      const board = await getBoardById(validatedParams.id);
-      if (!board) {
-        return createErrorResponse("Board not found", 404);
-      }
-      
+    return withBoardAuthorization(validatedParams.id, async (board) => {
       return createSuccessResponse(board);
     });
   })();
@@ -60,21 +43,15 @@ export async function PUT(
     const { data: validatedParams, error } = await validateParams(params, IdParamSchema);
     if (error) return error;
 
-    return withAuthAndValidation(req, UpdateBoardSchema, async (body, user) => {
-      // Check if user has access to this board
-      const accessibleBoards = await getBoardsForUser({
-        id: user.id,
-        role: user.role,
-      });
-      const accessibleBoardIds = accessibleBoards.map((b) => b.id);
-
-      if (!accessibleBoardIds.includes(validatedParams.id)) {
-        return createErrorResponse("Board not found or access denied", 403);
+    return withBoardAuthorizationAndValidation(
+      req,
+      validatedParams.id,
+      UpdateBoardSchema,
+      async (body) => {
+        const updated = await updateBoard(validatedParams.id, body);
+        return createSuccessResponse(updated);
       }
-
-      const updated = await updateBoard(validatedParams.id, body as any);
-      return createSuccessResponse(updated);
-    });
+    );
   })();
 }
 
@@ -90,25 +67,9 @@ export async function DELETE(
     const { data: validatedParams, error } = await validateParams(params, IdParamSchema);
     if (error) return error;
 
-    return withAuth(async (user) => {
-      // Check if user has access to this board
-      const accessibleBoards = await getBoardsForUser({
-        id: user.id,
-        role: user.role,
-      });
-      const accessibleBoardIds = accessibleBoards.map((b) => b.id);
-
-      if (!accessibleBoardIds.includes(validatedParams.id)) {
-        return createErrorResponse("Board not found or access denied", 403);
-      }
-
-      const board = await getBoardById(validatedParams.id);
-      if (!board) {
-        return createErrorResponse("Board not found", 404);
-      }
-
+    return withBoardAuthorization(validatedParams.id, async (board) => {
       if (board.teams && board.teams.length > 0) {
-        return createErrorResponse("Cannot delete a board that belongs to a team", 403);
+        return createErrorResponse(ERROR_MESSAGES.CANNOT_DELETE_TEAM_BOARD, 403);
       }
 
       await deleteBoard(validatedParams.id);

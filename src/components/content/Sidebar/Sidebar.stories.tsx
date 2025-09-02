@@ -22,13 +22,10 @@ const sampleBoards = [
 export const Default: Story = {
   args: {
     boards: sampleBoards,
-    onBoardClick: (id: string) => {
+    visible: true,
+    onHideSidebar: () => {
       // eslint-disable-next-line no-console
-      console.log("Board clicked:", id);
-    },
-    onCreateBoard: () => {
-      // eslint-disable-next-line no-console
-      console.log("Create new board clicked");
+      console.log("Hide sidebar clicked");
     },
   },
 };

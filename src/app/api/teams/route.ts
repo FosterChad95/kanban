@@ -1,4 +1,3 @@
-import prisma from "@/lib/prisma";
 import {
   withAdminAuth,
   withAdminAuthAndValidation,
@@ -6,6 +5,7 @@ import {
   createSuccessResponse,
 } from "@/lib/api-utils";
 import { CreateTeamSchema } from "@/schemas/api";
+import { getAllTeams, createTeam } from "@/queries/teamQueries";
 
 /**
  * GET /api/teams
@@ -14,26 +14,9 @@ import { CreateTeamSchema } from "@/schemas/api";
  */
 export const GET = withErrorHandling(async () => {
   return withAdminAuth(async () => {
-    const teams = await prisma.team.findMany({
-      include: {
-        users: {
-          include: {
-            user: {
-              select: { id: true, name: true },
-            },
-          },
-        },
-        boards: {
-          include: {
-            board: {
-              select: { id: true, name: true },
-            },
-          },
-        },
-      },
-    });
+    const teams = await getAllTeams();
 
-    // Transform to expected shape
+    // Transform to expected shape using our reusable transformer
     const transformedTeams = teams.map((team) => ({
       id: team.id,
       name: team.name,
@@ -53,8 +36,8 @@ export const GET = withErrorHandling(async () => {
 export async function POST(req: Request) {
   return withErrorHandling(async () => {
     return withAdminAuthAndValidation(req, CreateTeamSchema, async (body) => {
-      const team = await prisma.team.create({
-        data: { name: body.name },
+      const team = await createTeam({
+        name: body.name,
       });
 
       return createSuccessResponse(team, 201);

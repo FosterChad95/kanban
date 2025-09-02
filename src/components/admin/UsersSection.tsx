@@ -149,6 +149,8 @@ export default function UsersSection() {
           <DeleteModal
             type="user"
             name={deletingUser.name}
+            isOpen={showDelete}
+            onClose={hideDeleteModal}
             open={showDelete}
             onDelete={handleDeleteUser}
             onCancel={hideDeleteModal}

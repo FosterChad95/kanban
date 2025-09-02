@@ -1,14 +1,8 @@
 import React from "react";
-import Modal from "./Modal";
+import { Modal } from "./Modal";
 import Button from "../Button/Button";
-
-interface DeleteModalProps {
-  type: "task" | "board" | "team" | "user";
-  name: string;
-  onDelete: () => void | Promise<void>;
-  onCancel: () => void;
-  open: boolean;
-}
+import { DELETE_MODAL_CONFIGS, MODAL_STYLES } from "./utils";
+import type { DeleteModalProps } from "./types";
 
 const DeleteModal: React.FC<DeleteModalProps> = ({
   type,
@@ -17,31 +11,22 @@ const DeleteModal: React.FC<DeleteModalProps> = ({
   onCancel,
   open,
 }) => {
-  let title = "";
-  let message = "";
-
-  if (type === "board") {
-    title = "Delete this board?";
-    message = `Are you sure you want to delete the ‘${name}’ board? This action will remove all columns and tasks and cannot be reversed.`;
-  } else if (type === "task") {
-    title = "Delete this task?";
-    message = `Are you sure you want to delete the ‘${name}’ task and its subtasks? This action cannot be reversed.`;
-  } else if (type === "team") {
-    title = "Delete this team?";
-    message = `Are you sure you want to delete the ‘${name}’ team? This action will remove all associated boards and cannot be reversed.`;
-  } else if (type === "user") {
-    title = "Delete this user?";
-    message = `Are you sure you want to delete the user ‘${name}’? This action cannot be reversed.`;
-  }
+  const config = DELETE_MODAL_CONFIGS[type](name);
 
   return (
-    <Modal isOpen={open} onClose={onCancel}>
+    <Modal 
+      isOpen={open} 
+      onClose={onCancel}
+      size="sm"
+    >
       <div className="p-6 w-[350px] sm:w-[400px] text-black dark:text-light-gray">
-        <h2 className="text-red text-lg font-bold mb-4">{title}</h2>
+        <h2 className="text-red text-lg font-bold mb-4">
+          {config.title}
+        </h2>
         <p className="text-sm text-gray-500 dark:text-gray-300 mb-6">
-          {message}
+          {config.message}
         </p>
-        <div className="flex gap-4">
+        <div className={MODAL_STYLES.button.gap}>
           <Button
             className="flex-1"
             variant="destructive"
