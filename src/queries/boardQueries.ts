@@ -219,6 +219,64 @@ export async function deleteBoard(id: string) {
 }
 
 /**
+ * Check if a user has access to a specific board.
+ * @param boardId Board ID
+ * @param user User object with id and role
+ */
+export async function userHasAccessToBoard(boardId: string, user: { id: string; role: string }): Promise<boolean> {
+  if (user.role === USER_ROLES.ADMIN) {
+    return true;
+  }
+
+  const board = await prisma.board.findFirst({
+    where: {
+      id: boardId,
+      OR: [
+        // Boards where user is directly associated
+        {
+          users: {
+            some: {
+              userId: user.id,
+            },
+          },
+        },
+        // Boards accessible through team membership
+        {
+          teams: {
+            some: {
+              team: {
+                users: {
+                  some: {
+                    userId: user.id,
+                  },
+                },
+              },
+            },
+          },
+        },
+      ],
+    },
+  });
+
+  return board !== null;
+}
+
+/**
+ * Get a board by ID with access validation for a specific user.
+ * @param boardId Board ID
+ * @param user User object with id and role
+ */
+export async function getBoardByIdWithAccess(boardId: string, user: { id: string; role: string }): Promise<Board | null> {
+  const hasAccess = await userHasAccessToBoard(boardId, user);
+  
+  if (!hasAccess) {
+    return null;
+  }
+
+  return getBoardById(boardId);
+}
+
+/**
  * Create a board and link it to a user.
  * @param boardData Board creation data
  * @param userId User ID to link the board to

@@ -1,6 +1,7 @@
 import React from "react";
 import BoardWrapper from "../../../components/content/Board/BoardWrapper";
-import { getBoardById } from "../../../queries/boardQueries";
+import { getBoardByIdWithAccess } from "../../../queries/boardQueries";
+import { getCurrentUser } from "../../../lib/auth";
 import { redirect } from "next/navigation";
 
 /**
@@ -15,7 +16,13 @@ export default async function BoardPage({
   const resolvedParams = await params;
   const { boardId } = resolvedParams;
 
-  const board = await getBoardById(boardId);
+  const user = await getCurrentUser();
+  
+  if (!user) {
+    redirect("/signin");
+  }
+
+  const board = await getBoardByIdWithAccess(boardId, { id: user.id, role: user.role });
 
   if (!board) {
     // If board not found, go back to dashboard root (which will redirect appropriately)

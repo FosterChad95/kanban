@@ -24,9 +24,9 @@ export function AdminSection({
     <section className="mb-12">
       {/* Section Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-semibold">{title}</h2>
+        <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{title}</h2>
         <button
-          className="bg-main-purple text-white px-4 py-2 rounded hover:bg-main-purple-light transition-colors"
+          className="bg-main-purple text-white px-4 py-2 rounded hover:bg-main-purple-light transition-colors disabled:opacity-50"
           onClick={onAdd}
           disabled={loading}
         >
@@ -88,18 +88,18 @@ export function ItemList<T extends { id: string; name: string }>({
             className="py-2 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center"
           >
             {/* Custom item rendering or default */}
-            {renderItem ? renderItem(item) : <span>{item.name}</span>}
+            {renderItem ? renderItem(item) : <span className="text-gray-900 dark:text-gray-100">{item.name}</span>}
 
             {/* Action buttons */}
             <div className="flex gap-2">
               <button
-                className="text-blue-600 hover:underline"
+                className="text-blue-600 dark:text-blue-400 hover:underline"
                 onClick={() => onEdit(item)}
               >
                 Edit
               </button>
               <button
-                className="text-red-600 hover:underline"
+                className="text-red-600 dark:text-red-400 hover:underline"
                 onClick={() => onDelete(item)}
               >
                 Delete

@@ -52,7 +52,6 @@ async function main() {
   await prisma.team.deleteMany();
   await prisma.account.deleteMany();
   await prisma.session.deleteMany();
-  await prisma.verificationToken.deleteMany();
 
   // Create more users
   const user2 = await prisma.user.upsert({
@@ -586,13 +585,6 @@ async function main() {
     },
   });
 
-  await prisma.verificationToken.create({
-    data: {
-      identifier: user.email,
-      token: "dummy_verification_token",
-      expires: new Date(Date.now() + 1000 * 60 * 60 * 24), // 1 day from now
-    },
-  });
 
   console.log(
     "Seeded users, team, team board, private boards, and auth tables."

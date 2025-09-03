@@ -10,6 +10,8 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "db:seed": "prisma db seed",
+    "db:seed:fix": "node prisma/fix-seed-boardids.js",
+    "db:seed:complete": "npm run db:seed && npm run db:seed:fix",
     "db:reset": "prisma migrate reset --force"
   },
   "dependencies": {
@@ -24,8 +26,11 @@
     "next-auth": "^4.24.11",
     "prisma": "^6.14.0",
     "pusher": "^5.2.0",
+    "pusher-js": "^8.4.0",
     "randomcolor": "^0.6.2",
     "react": "^19.0.0",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.62.0",
     "tailwind-merge": "^3.2.0",
@@ -42,6 +47,7 @@
     "@storybook/react": "^8.5.2",
     "@storybook/test": "^8.5.2",
     "@types/node": "^20",
+    "@types/pusher-js": "^4.2.2",
     "@types/randomcolor": "^0.5.9",
     "@types/react": "^19",
     "@types/react-dom": "^19",

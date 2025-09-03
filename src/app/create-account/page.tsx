@@ -67,11 +67,16 @@ export default function CreateAccountPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-[#20212c]">
+      <div className="w-full max-w-md flex flex-col items-center mb-4">
+        <Link href="/" className="text-main-purple hover:underline text-sm">
+          ← Back to front page
+        </Link>
+      </div>
       <div className="bg-white dark:bg-[#2b2c37] rounded-xl shadow-xl p-8 w-full max-w-md flex flex-col items-center">
         <h1 className="heading-xl mb-6 text-main-purple">Create Account</h1>
 
         {errors.root?.message && (
-          <div className="mb-4 text-red-600 text-center">
+          <div className="mb-4 text-red text-center">
             {errors.root.message}
           </div>
         )}

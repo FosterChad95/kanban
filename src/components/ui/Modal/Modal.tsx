@@ -24,15 +24,15 @@ const modalVariants: ModalVariants = {
 
 const sizeClasses = {
   sm: "max-w-sm",
-  md: "max-w-md", 
+  md: "max-w-md",
   lg: "max-w-lg",
   xl: "max-w-xl",
 } as const;
 
-export const Modal: React.FC<EnhancedModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  children, 
+export const Modal: React.FC<EnhancedModalProps> = ({
+  isOpen,
+  onClose,
+  children,
   title,
   size = "lg",
   showCloseButton = false,
@@ -42,11 +42,11 @@ export const Modal: React.FC<EnhancedModalProps> = ({
 }) => {
   useEffect(() => {
     if (!isOpen || disableEscapeKey) return;
-    
+
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
-    
+
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [isOpen, onClose, disableEscapeKey]);
@@ -87,7 +87,10 @@ export const Modal: React.FC<EnhancedModalProps> = ({
             {(title || showCloseButton) && (
               <div className="flex items-center justify-between mb-6">
                 {title && (
-                  <h2 id="modal-title" className="text-xl font-bold text-black dark:text-white">
+                  <h2
+                    id="modal-title"
+                    className="text-xl font-bold text-black dark:text-white"
+                  >
                     {title}
                   </h2>
                 )}

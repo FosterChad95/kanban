@@ -1,15 +1,32 @@
 import React from "react";
+import { useDrag } from "react-dnd";
 import { useModal } from "../../../providers/ModalProvider";
 import ViewTaskModal from "../../ui/Modal/ViewTaskModal";
 import type { Task } from "@/util/types";
+import { DND_ITEM_TYPES } from "../../../types/dragDrop";
+import type { DragItem } from "../../../types/dragDrop";
 
 type TaskProps = {
   task: Task & { columnOptions: any[] };
+  index: number;
 };
 
-const Task: React.FC<TaskProps> = ({ task }) => {
+const Task: React.FC<TaskProps> = ({ task, index }) => {
   const { openModal } = useModal();
   const completedCount = task.subtasks.filter((s) => s.isCompleted).length;
+
+  const [{ isDragging }, drag] = useDrag(() => ({
+    type: DND_ITEM_TYPES.TASK,
+    item: (): DragItem => ({
+      type: DND_ITEM_TYPES.TASK,
+      id: task.id,
+      columnId: task.columnId,
+      index,
+    }),
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  }), [task.id, task.columnId, index]);
 
   const handleClick = () => {
     openModal(
@@ -42,8 +59,14 @@ const Task: React.FC<TaskProps> = ({ task }) => {
 
   return (
     <div
-      className="bg-white dark:bg-dark-gray rounded-lg shadow p-4 cursor-pointer hover:shadow-lg transition"
+      ref={drag as any}
+      className={`bg-white dark:bg-dark-gray rounded-lg shadow p-4 cursor-pointer hover:shadow-lg transition ${
+        isDragging ? "opacity-50" : ""
+      }`}
       onClick={handleClick}
+      style={{
+        transform: isDragging ? "rotate(5deg)" : "none",
+      }}
     >
       <div className="font-semibold text-gray-900 dark:text-light-gray mb-2">
         {task.title}

@@ -30,7 +30,7 @@ export function UserListItem({ user, onEdit, onDelete }: UserListItemProps) {
         
         {/* Name and Email */}
         <div className="flex flex-col">
-          <span className="font-medium">{user.name}</span>
+          <span className="font-medium text-gray-900 dark:text-gray-100">{user.name}</span>
           {user.email && (
             <span className="text-gray-500 dark:text-gray-400 text-sm">
               {user.email}
@@ -42,13 +42,13 @@ export function UserListItem({ user, onEdit, onDelete }: UserListItemProps) {
       {/* Action Buttons */}
       <div className="flex gap-2">
         <button
-          className="text-blue-600 hover:underline"
+          className="text-blue-600 dark:text-blue-400 hover:underline"
           onClick={() => onEdit(user)}
         >
           Edit
         </button>
         <button
-          className="text-red-600 hover:underline"
+          className="text-red-600 dark:text-red-400 hover:underline"
           onClick={() => onDelete(user)}
         >
           Delete

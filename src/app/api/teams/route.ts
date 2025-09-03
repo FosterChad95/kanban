@@ -6,6 +6,7 @@ import {
 } from "@/lib/api-utils";
 import { CreateTeamSchema } from "@/schemas/api";
 import { getAllTeams, createTeam } from "@/queries/teamQueries";
+import { triggerTeamCreated } from "@/lib/pusher-events";
 
 /**
  * GET /api/teams
@@ -35,10 +36,13 @@ export const GET = withErrorHandling(async () => {
  */
 export async function POST(req: Request) {
   return withErrorHandling(async () => {
-    return withAdminAuthAndValidation(req, CreateTeamSchema, async (body) => {
+    return withAdminAuthAndValidation(req, CreateTeamSchema, async (body, user) => {
       const team = await createTeam({
         name: body.name,
       });
+
+      // Trigger real-time event for team creation
+      await triggerTeamCreated(team, user.id);
 
       return createSuccessResponse(team, 201);
     });
