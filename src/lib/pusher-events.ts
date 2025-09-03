@@ -275,7 +275,7 @@ export async function triggerColumnDeleted(columnId: string, boardId: string, de
 
 // Team event triggers
 export async function triggerTeamCreated(teamData: any, createdBy: string) {
-  const userIds = await getUsersInTeam(teamData.id);
+  // const userIds = await getUsersInTeam(teamData.id);
   
   await pusher.trigger(getChannelNames.team(teamData.id), PUSHER_EVENTS.TEAM_CREATED, {
     team: teamData,

@@ -214,12 +214,12 @@ export default function BoardWrapper({
 
     try {
       // Build payload similar to existing logic elsewhere: update/create/delete
-      const prevColumns = columns;
-      const formColumns = form.columns || [];
-      const prevColumnIds = prevColumns.map((c) => c.id);
-      const formColumnIds = formColumns
-        .map((c) => c.id)
-        .filter(Boolean) as string[];
+      // const prevColumns = columns;
+      // const formColumns = form.columns || [];
+      // const prevColumnIds = prevColumns.map((c) => c.id);
+      // const formColumnIds = formColumns
+      //   .map((c) => c.id)
+      //   .filter(Boolean) as string[];
 
       // const columnsToUpdate = formColumns
       //   .filter((col) => col.id && prevColumnIds.includes(col.id as string))

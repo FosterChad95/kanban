@@ -27,7 +27,8 @@ export async function POST(req: Request) {
         });
 
         // Remove sensitive fields before returning
-        const { hashedPassword: _, ...safeUser } = user;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { hashedPassword: _hashedPassword, ...safeUser } = user;
 
         return createSuccessResponse({ user: safeUser }, 201);
       } catch (err: unknown) {

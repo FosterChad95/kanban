@@ -44,12 +44,12 @@ export function useTeams() {
     actions.removeItem(event.teamId);
   }, [actions]);
 
-  const handleTeamUserAdded = useCallback((event: any) => {
+  const handleTeamUserAdded = useCallback(() => {
     // Refresh teams to get updated user lists
     fetchTeams();
   }, [fetchTeams]);
 
-  const handleTeamUserRemoved = useCallback((event: any) => {
+  const handleTeamUserRemoved = useCallback(() => {
     // Refresh teams to get updated user lists
     fetchTeams();
   }, [fetchTeams]);
