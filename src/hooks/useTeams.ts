@@ -1,6 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useCrudOperations, createApiOperations } from "./useCrudOperations";
 import { AdminTeam, CreateTeamForm, EditTeamForm } from "@/types/admin";
+import { useTeamPusher } from "./usePusherListeners";
 
 const teamsApi = createApiOperations("/api/teams");
 
@@ -10,15 +11,10 @@ const teamsApi = createApiOperations("/api/teams");
 export function useTeams() {
   const { state, actions } = useCrudOperations<AdminTeam>();
 
-  // Fetch teams on mount
-  useEffect(() => {
-    fetchTeams();
-  }, []);
-
   /**
    * Fetch all teams from API
    */
-  const fetchTeams = async () => {
+  const fetchTeams = useCallback(async () => {
     actions.setLoading(true);
     actions.setError(null);
 
@@ -33,7 +29,44 @@ export function useTeams() {
     } finally {
       actions.setLoading(false);
     }
-  };
+  }, [actions]);
+
+  // Real-time event handlers
+  const handleTeamCreated = useCallback((event: any) => {
+    actions.addItem(event.team);
+  }, [actions]);
+
+  const handleTeamUpdated = useCallback((event: any) => {
+    actions.updateItem(event.team);
+  }, [actions]);
+
+  const handleTeamDeleted = useCallback((event: any) => {
+    actions.removeItem(event.teamId);
+  }, [actions]);
+
+  const handleTeamUserAdded = useCallback((event: any) => {
+    // Refresh teams to get updated user lists
+    fetchTeams();
+  }, [fetchTeams]);
+
+  const handleTeamUserRemoved = useCallback((event: any) => {
+    // Refresh teams to get updated user lists
+    fetchTeams();
+  }, [fetchTeams]);
+
+  // Set up real-time listeners
+  useTeamPusher({
+    onTeamCreated: handleTeamCreated,
+    onTeamUpdated: handleTeamUpdated,
+    onTeamDeleted: handleTeamDeleted,
+    onTeamUserAdded: handleTeamUserAdded,
+    onTeamUserRemoved: handleTeamUserRemoved,
+  });
+
+  // Fetch teams on mount
+  useEffect(() => {
+    fetchTeams();
+  }, [fetchTeams]);
 
   /**
    * Create a new team

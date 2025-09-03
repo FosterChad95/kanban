@@ -12,6 +12,7 @@ import {
   validateParams 
 } from "../../../../lib/api-utils";
 import { IdParamSchema, UpdateTaskSchema } from "../../../../schemas/api";
+import { triggerTaskUpdated, triggerTaskDeleted } from "../../../../lib/pusher-events";
 
 /**
  * GET /api/tasks/:id
@@ -47,10 +48,26 @@ export async function PUT(
     const { data: validatedParams, error } = await validateParams(params, IdParamSchema);
     if (error) return error;
 
-    return withAuthAndValidation(req, UpdateTaskSchema, async (body) => {
+    return withAuthAndValidation(req, UpdateTaskSchema, async (body, user) => {
       // Extract subtasks and map to updateMany structure
-      const { subtasks, ...rest } = body;
+      const { subtasks, columnId, ...rest } = body;
       const data: any = { ...rest };
+      
+      // If column is changing, get the new column's boardId
+      if (columnId) {
+        const prisma = (await import("../../../../lib/prisma")).default;
+        const column = await prisma.column.findUnique({
+          where: { id: columnId },
+          select: { boardId: true }
+        });
+        
+        if (!column) {
+          return createErrorResponse("Column not found", 404);
+        }
+        
+        data.column = { connect: { id: columnId } };
+        data.board = { connect: { id: column.boardId } };
+      }
       
       if (Array.isArray(subtasks)) {
         data.subtasks = {
@@ -65,6 +82,10 @@ export async function PUT(
       }
       
       const updated = await updateTask(validatedParams.id, data);
+      
+      // Trigger real-time event for task update
+      await triggerTaskUpdated(updated, user.id);
+      
       return createSuccessResponse(updated);
     });
   })();
@@ -82,13 +103,17 @@ export async function DELETE(
     const { data: validatedParams, error } = await validateParams(params, IdParamSchema);
     if (error) return error;
 
-    return withAuth(async () => {
+    return withAuth(async (user) => {
       const task = await getTaskById(validatedParams.id);
       if (!task) {
         return createErrorResponse("Task not found", 404);
       }
 
       await deleteTask(validatedParams.id);
+      
+      // Trigger real-time event for task deletion
+      await triggerTaskDeleted(validatedParams.id, task.boardId || '', user.id);
+      
       return createSuccessResponse({ success: true });
     });
   })();

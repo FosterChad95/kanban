@@ -138,7 +138,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                               return;
                             }
                             closeModal();
-                            router.refresh();
+                            // Real-time events will handle navigation, but keep refresh as fallback
+                            setTimeout(() => {
+                              router.refresh();
+                            }, 2000);
                           } catch (err) {
                             console.error("Failed to create board:", err);
                           }

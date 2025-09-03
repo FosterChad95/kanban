@@ -38,7 +38,7 @@ const Header: React.FC<HeaderProps> = ({ boards, adminOnlyLogo = false }) => {
   const currentBoardId = params?.boardId;
   const activeBoard = boards.find((b) => b.id === currentBoardId) ||
     boards.find((b) => b.active) ||
-    boards[0] || { name: "Board", columns: [] };
+    boards[0] || { name: "Board", columns: [], hasTeam: false, teams: [], users: [] };
 
   // Handlers for modals
   const handleAddTask = () => {
@@ -157,6 +157,8 @@ const Header: React.FC<HeaderProps> = ({ boards, adminOnlyLogo = false }) => {
               method: "DELETE",
             });
             closeModal();
+            // Refresh the page to ensure UI updates even if Pusher events fail
+            router.refresh();
           } catch (err) {
             console.error("Failed to delete board:", err);
           }
@@ -273,9 +275,9 @@ const Header: React.FC<HeaderProps> = ({ boards, adminOnlyLogo = false }) => {
               </svg>
             </Button>
             {ellipsisOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-50 flex flex-col py-2">
+              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-dark-gray rounded-lg shadow-lg z-50 flex flex-col py-2">
                 <button
-                  className="text-gray-700 px-4 py-2 text-left hover:bg-gray-100"
+                  className="text-gray-700 dark:text-gray-300 px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-600"
                   onClick={handleEditBoard}
                 >
                   Edit Board
@@ -283,8 +285,8 @@ const Header: React.FC<HeaderProps> = ({ boards, adminOnlyLogo = false }) => {
                 <button
                   className={`px-4 py-2 text-left ${
                     activeBoard.hasTeam
-                      ? "text-gray-400 cursor-not-allowed"
-                      : "text-red-500 hover:bg-red-50"
+                      ? "text-gray-400 dark:text-gray-400 cursor-not-allowed"
+                      : "text-red-500 hover:bg-red-50 dark:hover:bg-gray-600"
                   }`}
                   onClick={activeBoard.hasTeam ? undefined : handleDeleteBoard}
                   title={
@@ -338,16 +340,26 @@ const Header: React.FC<HeaderProps> = ({ boards, adminOnlyLogo = false }) => {
               </svg>
             </Button>
             {ellipsisOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-50 flex flex-col py-2">
+              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-dark-gray rounded-lg shadow-lg z-50 flex flex-col py-2">
                 <button
-                  className="text-gray-700 px-4 py-2 text-left hover:bg-gray-100"
+                  className="text-gray-700 dark:text-gray-300 px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-600"
                   onClick={handleEditBoard}
                 >
                   Edit Board
                 </button>
                 <button
-                  className="text-red-500 px-4 py-2 text-left hover:bg-red-50"
-                  onClick={handleDeleteBoard}
+                  className={`px-4 py-2 text-left ${
+                    activeBoard.hasTeam
+                      ? "text-gray-400 dark:text-gray-400 cursor-not-allowed"
+                      : "text-red-500 hover:bg-red-50 dark:hover:bg-gray-600"
+                  }`}
+                  onClick={activeBoard.hasTeam ? undefined : handleDeleteBoard}
+                  title={
+                    activeBoard.hasTeam
+                      ? "Boards that belong to a team cannot be deleted."
+                      : undefined
+                  }
+                  disabled={activeBoard.hasTeam}
                 >
                   Delete Board
                 </button>

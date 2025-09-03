@@ -8,6 +8,7 @@ import {
   validateParams 
 } from "@/lib/api-utils";
 import { IdParamSchema, UpdateTeamSchema } from "@/schemas/api";
+import { triggerTeamUpdated, triggerTeamDeleted } from "@/lib/pusher-events";
 
 /**
  * PUT /api/teams/:id
@@ -22,7 +23,7 @@ export async function PUT(
     const { data: validatedParams, error } = await validateParams(params, IdParamSchema);
     if (error) return error;
 
-    return withAdminAuthAndValidation(req, UpdateTeamSchema, async (body) => {
+    return withAdminAuthAndValidation(req, UpdateTeamSchema, async (body, user) => {
       // Extract IDs from user and board objects
       const userIds = body.users.map((u) => u.id).filter(Boolean);
       const boardIds = body.boards.map((b) => b.id).filter(Boolean);
@@ -33,6 +34,9 @@ export async function PUT(
         userIds,
         boardIds
       });
+
+      // Trigger real-time event for team update
+      await triggerTeamUpdated(updatedTeam, user.id);
 
       return createSuccessResponse(updatedTeam);
     });
@@ -52,7 +56,7 @@ export async function DELETE(
     const { data: validatedParams, error } = await validateParams(params, IdParamSchema);
     if (error) return error;
 
-    return withAdminAuth(async () => {
+    return withAdminAuth(async (user) => {
       // Check if team exists
       const existingTeam = await getTeamById(validatedParams.id);
 
@@ -61,6 +65,9 @@ export async function DELETE(
       }
 
       await deleteTeam(validatedParams.id);
+
+      // Trigger real-time event for team deletion
+      await triggerTeamDeleted(validatedParams.id, user.id);
 
       return createSuccessResponse({ message: "Team deleted successfully" });
     });

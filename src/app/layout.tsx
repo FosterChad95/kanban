@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "../providers/ThemeProvider";
 import NextAuthSessionProvider from "../providers/SessionProvider";
 import { ModalProvider } from "../providers/ModalProvider";
+import { DragDropProvider } from "../providers/DragDropProvider";
 import Modal from "../components/ui/Modal/Modal";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -96,7 +97,9 @@ export default function RootLayout({
       <body className={`${plusJakartaSans.variable} font-sans`}>
         <ModalProvider ModalComponent={Modal}>
           <NextAuthSessionProvider>
-            <ThemeProvider>{children}</ThemeProvider>
+            <DragDropProvider>
+              <ThemeProvider>{children}</ThemeProvider>
+            </DragDropProvider>
           </NextAuthSessionProvider>
         </ModalProvider>
       </body>

@@ -1,4 +1,4 @@
-import { useReducer } from 'react';
+import { useReducer, useMemo } from 'react';
 import { CrudState, CrudAction } from '@/types/admin';
 
 /**
@@ -112,7 +112,7 @@ export function useCrudOperations<T extends { id: string }>(initialItems: T[] = 
 
   const [state, dispatch] = useReducer(crudReducer<T>, initialState);
 
-  const actions = {
+  const actions = useMemo(() => ({
     // Basic state management
     setItems: (items: T[]) => dispatch({ type: 'SET_ITEMS', items }),
     setLoading: (loading: boolean) => dispatch({ type: 'SET_LOADING', loading }),
@@ -138,7 +138,7 @@ export function useCrudOperations<T extends { id: string }>(initialItems: T[] = 
     setDeleting: (deleting: boolean) => dispatch({ type: 'SET_DELETING', deleting }),
     setDeleteError: (error: string | null) => dispatch({ type: 'SET_DELETE_ERROR', error }),
     removeItem: (id: string) => dispatch({ type: 'REMOVE_ITEM', id }),
-  };
+  }), [dispatch]);
 
   return { state, actions };
 }

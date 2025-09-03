@@ -24,9 +24,10 @@ type BoardProps = {
     name: string;
     columns: { id?: string; name: string }[];
   }) => void;
+  onTaskMove?: (taskId: string, targetColumnId: string) => void;
 };
 
-const Board: React.FC<BoardProps> = ({ columns, boardName, onEditBoard }) => {
+const Board: React.FC<BoardProps> = ({ columns, boardName, onEditBoard, onTaskMove }) => {
   const { openModal, closeModal } = useModal();
 
   const handleOpenEditBoard = () => {
@@ -81,6 +82,7 @@ const Board: React.FC<BoardProps> = ({ columns, boardName, onEditBoard }) => {
                       ? c.color
                       : randomColor({ luminosity: "light", seed: c.id || i }),
                 }))}
+                onTaskMove={onTaskMove || (() => {})}
               />
             );
           })}

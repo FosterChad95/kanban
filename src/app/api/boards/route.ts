@@ -1,6 +1,7 @@
 import { createBoardForUser, getBoardsForUser } from "../../../queries/boardQueries";
 import { withAuth, withAuthAndValidation, withErrorHandling, createSuccessResponse } from "../../../lib/api-utils";
 import { CreateBoardSchema } from "../../../schemas/api";
+import { triggerBoardCreated } from "../../../lib/pusher-events";
 
 /**
  * GET /api/boards
@@ -31,6 +32,12 @@ export async function POST(req: Request) {
         },
         user.id
       );
+
+      // Add a small delay to ensure the database transaction is fully committed
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Trigger real-time event for board creation with creator's user ID
+      await triggerBoardCreated(created.id, created, user.id, [user.id]);
 
       return createSuccessResponse(created, 201);
     });

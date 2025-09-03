@@ -19,7 +19,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className={cn("text-sm text-gray-700 font-bold", {
+            className={cn("text-sm text-gray-700 dark:text-gray-300 font-bold", {
               "text-red": error,
               "opacity-50": disabled,
             })}
@@ -32,8 +32,8 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
           id={inputId}
           ref={ref}
           className={cn(
-            "px-4 py-2 rounded-[4px] border border-[rgba(130,143,163,0.25)] bg-white",
-            "heading-medium placeholder:text-gray-400",
+            "px-4 py-2 rounded-[4px] border border-[rgba(130,143,163,0.25)] bg-white dark:bg-gray-800 dark:border-gray-600",
+            "heading-medium placeholder:text-gray-400 dark:placeholder:text-gray-500 text-gray-900 dark:text-gray-100",
             "transition-all duration-200",
             "focus:outline-none focus:ring-2 focus:ring-main-purple focus:ring-opacity-25 focus:border-main-purple",
             "hover:border-main-purple",
@@ -61,7 +61,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
           </span>
         )}
         {helperText && !error && (
-          <span id={`${inputId}-helper`} className="text-sm text-gray-400">
+          <span id={`${inputId}-helper`} className="text-sm text-gray-400 dark:text-gray-500">
             {helperText}
           </span>
         )}
