@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useCrudOperations, createApiOperations } from './useCrudOperations';
-import { AdminBoard, CreateBoardForm, EditBoardForm, TeamOption } from '@/types/admin';
+import { AdminBoard, CreateBoardForm, EditBoardForm } from '@/types/admin';
 
 const boardsApi = createApiOperations('/api/boards');
 

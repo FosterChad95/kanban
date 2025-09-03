@@ -60,7 +60,6 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-
 model Team {
   id        String      @id @default(cuid())
   name      String

@@ -6,14 +6,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import TextField from "@/components/ui/TextField/TextField";
 import { useForm } from "react-hook-form";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 
 type SignInForm = {
   email: string;
   password: string;
 };
 
-export default function SignInPage() {
+function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const urlError = searchParams.get("error");
@@ -124,5 +124,13 @@ export default function SignInPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignInForm />
+    </Suspense>
   );
 }
